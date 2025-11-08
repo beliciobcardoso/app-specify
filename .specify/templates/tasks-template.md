@@ -20,10 +20,17 @@ description: "Task list template for feature implementation"
 
 ## Path Conventions
 
-- **Single project**: `src/`, `tests/` at repository root
-- **Web app**: `backend/src/`, `frontend/src/`
-- **Mobile**: `api/src/`, `ios/src/` or `android/src/`
-- Paths shown below assume single project - adjust based on plan.md structure
+- **Next.js with Clean Architecture (DEFAULT for App-Specify)**:
+  - `src/app/` - Next.js App Router (Presentation Layer)
+  - `src/core/domain/` - Entities, Value Objects, Domain Services
+  - `src/core/application/` - Use Cases, DTOs, Repository Interfaces (Ports)
+  - `src/infrastructure/` - Prisma, Better-Auth, Repository Implementations
+  - `tests/unit/` - Core business logic tests
+  - `tests/integration/` - Server Actions, Route Handlers, Repository tests
+- **Monorepo**: Adjust paths with `apps/[app-name]/src/` prefix
+- **Mobile + API**: `apps/api/src/` for Next.js, `mobile/ios/` or `mobile/android/`
+
+Paths shown below assume Next.js Clean Architecture - adjust based on plan.md structure
 
 <!-- 
   ============================================================================
@@ -62,12 +69,15 @@ description: "Task list template for feature implementation"
 
 Examples of foundational tasks (adjust based on your project):
 
-- [ ] T004 Setup database schema and migrations framework
-- [ ] T005 [P] Implement authentication/authorization framework
-- [ ] T006 [P] Setup API routing and middleware structure
-- [ ] T007 Create base models/entities that all stories depend on
-- [ ] T008 Configure error handling and logging infrastructure
-- [ ] T009 Setup environment configuration management
+- [ ] T004 Setup Prisma schema and migrations in `src/infrastructure/database/prisma/`
+- [ ] T005 [P] Configure Better-Auth in `src/infrastructure/auth/`
+- [ ] T006 [P] Setup Next.js App Router structure in `src/app/`
+- [ ] T007 Define core domain entities in `src/core/domain/entities/`
+- [ ] T008 Define repository interfaces (ports) in `src/core/application/ports/`
+- [ ] T009 Implement repository pattern in `src/infrastructure/database/repositories/`
+- [ ] T010 Configure Zod validation schemas in `src/infrastructure/validation/`
+- [ ] T011 Setup error handling infrastructure
+- [ ] T012 Configure environment management (`.env` + config module)
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -83,17 +93,19 @@ Examples of foundational tasks (adjust based on your project):
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T010 [P] [US1] Contract test for [endpoint] in tests/contract/test_[name].py
-- [ ] T011 [P] [US1] Integration test for [user journey] in tests/integration/test_[name].py
+- [ ] T013 [P] [US1] Unit test for [Use Case] in tests/unit/core/application/test_[use-case].ts
+- [ ] T014 [P] [US1] Integration test for [Server Action] in tests/integration/app/test_[action].ts
 
 ### Implementation for User Story 1
 
-- [ ] T012 [P] [US1] Create [Entity1] model in src/models/[entity1].py
-- [ ] T013 [P] [US1] Create [Entity2] model in src/models/[entity2].py
-- [ ] T014 [US1] Implement [Service] in src/services/[service].py (depends on T012, T013)
-- [ ] T015 [US1] Implement [endpoint/feature] in src/[location]/[file].py
-- [ ] T016 [US1] Add validation and error handling
-- [ ] T017 [US1] Add logging for user story 1 operations
+- [ ] T015 [P] [US1] Create [Entity] in src/core/domain/entities/[entity].ts
+- [ ] T016 [P] [US1] Create [Value Object] in src/core/domain/value-objects/[vo].ts
+- [ ] T017 [US1] Implement [Use Case] in src/core/application/use-cases/[use-case].ts (depends on T015, T016)
+- [ ] T018 [US1] Create Zod schema for [Input/Output] in src/infrastructure/validation/[schema].ts
+- [ ] T019 [US1] Implement Server Action in src/app/[route]/_actions/[action].ts
+- [ ] T020 [US1] Create Server Component in src/app/[route]/_components/[component].tsx
+- [ ] T021 [US1] Add authorization checks using Better-Auth
+- [ ] T022 [US1] Add error handling and validation
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
@@ -107,15 +119,16 @@ Examples of foundational tasks (adjust based on your project):
 
 ### Tests for User Story 2 (OPTIONAL - only if tests requested) ⚠️
 
-- [ ] T018 [P] [US2] Contract test for [endpoint] in tests/contract/test_[name].py
-- [ ] T019 [P] [US2] Integration test for [user journey] in tests/integration/test_[name].py
+- [ ] T023 [P] [US2] Unit test for [Use Case] in tests/unit/core/application/test_[use-case].ts
+- [ ] T024 [P] [US2] Integration test for [Server Action] in tests/integration/app/test_[action].ts
 
 ### Implementation for User Story 2
 
-- [ ] T020 [P] [US2] Create [Entity] model in src/models/[entity].py
-- [ ] T021 [US2] Implement [Service] in src/services/[service].py
-- [ ] T022 [US2] Implement [endpoint/feature] in src/[location]/[file].py
-- [ ] T023 [US2] Integrate with User Story 1 components (if needed)
+- [ ] T025 [P] [US2] Create [Entity] in src/core/domain/entities/[entity].ts
+- [ ] T026 [US2] Implement [Use Case] in src/core/application/use-cases/[use-case].ts
+- [ ] T027 [US2] Implement Server Action in src/app/[route]/_actions/[action].ts
+- [ ] T028 [US2] Create Component in src/app/[route]/_components/[component].tsx
+- [ ] T029 [US2] Integrate with User Story 1 components (if needed)
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 
@@ -129,14 +142,15 @@ Examples of foundational tasks (adjust based on your project):
 
 ### Tests for User Story 3 (OPTIONAL - only if tests requested) ⚠️
 
-- [ ] T024 [P] [US3] Contract test for [endpoint] in tests/contract/test_[name].py
-- [ ] T025 [P] [US3] Integration test for [user journey] in tests/integration/test_[name].py
+- [ ] T030 [P] [US3] Unit test for [Use Case] in tests/unit/core/application/test_[use-case].ts
+- [ ] T031 [P] [US3] Integration test for [Server Action] in tests/integration/app/test_[action].ts
 
 ### Implementation for User Story 3
 
-- [ ] T026 [P] [US3] Create [Entity] model in src/models/[entity].py
-- [ ] T027 [US3] Implement [Service] in src/services/[service].py
-- [ ] T028 [US3] Implement [endpoint/feature] in src/[location]/[file].py
+- [ ] T032 [P] [US3] Create [Entity] in src/core/domain/entities/[entity].ts
+- [ ] T033 [US3] Implement [Use Case] in src/core/application/use-cases/[use-case].ts
+- [ ] T034 [US3] Implement Server Action in src/app/[route]/_actions/[action].ts
+- [ ] T035 [US3] Create Component in src/app/[route]/_components/[component].tsx
 
 **Checkpoint**: All user stories should now be independently functional
 
@@ -199,12 +213,12 @@ Examples of foundational tasks (adjust based on your project):
 
 ```bash
 # Launch all tests for User Story 1 together (if tests requested):
-Task: "Contract test for [endpoint] in tests/contract/test_[name].py"
-Task: "Integration test for [user journey] in tests/integration/test_[name].py"
+Task: "Unit test for [Use Case] in tests/unit/core/application/test_[use-case].ts"
+Task: "Integration test for [Server Action] in tests/integration/app/test_[action].ts"
 
-# Launch all models for User Story 1 together:
-Task: "Create [Entity1] model in src/models/[entity1].py"
-Task: "Create [Entity2] model in src/models/[entity2].py"
+# Launch all domain models for User Story 1 together:
+Task: "Create [Entity] in src/core/domain/entities/[entity].ts"
+Task: "Create [Value Object] in src/core/domain/value-objects/[vo].ts"
 ```
 
 ---

@@ -1,50 +1,223 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+Sync Impact Report - Version 1.0.0
+════════════════════════════════════════════════════════════════════════════════
+Version Change: Initial Constitution (0.0.0 → 1.0.0)
+Bump Rationale: MAJOR version - First ratification of project governance framework
+
+Modified Principles:
+  - N/A (Initial creation)
+
+Added Sections:
+  - Core Principles (7 principles defined)
+  - Technology Stack Requirements
+  - Development Workflow & Quality Gates
+  - Governance
+
+Removed Sections:
+  - N/A (Initial creation)
+
+Templates Requiring Updates:
+  ✅ plan-template.md - Constitution Check section already aligned
+  ✅ spec-template.md - Requirements structure compatible
+  ✅ tasks-template.md - Task organization supports principle-driven phases
+
+Follow-up TODOs:
+  - None (all placeholders filled)
+
+═══════════════════════════════════════════════════════════════════════════════
+-->
+
+# App-Specify Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Clean Architecture (NON-NEGOTIABLE)
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+**Regra de Dependência Inquebrável**: O código DEVE seguir a Clean Architecture com separação rigorosa de responsabilidades. A lógica de negócio ("core": `domain` + `application/use-cases`) DEVE ser pura e totalmente agnóstica de frameworks externos (Next.js, Prisma, UI).
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+- O "core" NÃO PODE importar nada de `app/` ou bibliotecas de infraestrutura
+- Dependências DEVEM fluir de fora para dentro (UI → Application → Domain)
+- Violações desta regra DEVEM ser rejeitadas em code review
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+**Rationale**: Garante testabilidade, manutenibilidade e independência de frameworks. Permite trocar infraestrutura sem afetar regras de negócio.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### II. Documentation-First & Type Safety (NON-NEGOTIABLE)
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+**TypeScript Strict Mode Obrigatório**: Todo código DEVE ser escrito em TypeScript com `strict: true` no `tsconfig.json`.
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+- Uso de `any` é PROIBIDO (exceções raras DEVEM ser justificadas e documentadas)
+- Tipos complexos e APIs públicas DEVEM ter documentação JSDoc clara
+- Interfaces DEVEM ser preferidas sobre tipos concretos para abstração
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+**Rationale**: Previne erros em tempo de desenvolvimento, serve como documentação viva e facilita refatoração segura.
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+### III. Repository Pattern & Dependency Inversion (SOLID)
+
+**Abstração de Infraestrutura**: Prisma ORM DEVE ser sempre encapsulado por trás de interfaces (Repository Pattern) definidas na camada de aplicação.
+
+- Camada de aplicação DEVE definir interfaces de repositórios
+- Camada de infraestrutura DEVE implementar essas interfaces usando Prisma
+- Injeção de dependência DEVE ser usada para fornecer implementações concretas
+- Code da camada de domínio/aplicação NÃO PODE importar `@prisma/client` diretamente
+
+**Rationale**: Princípio da Inversão de Dependência (SOLID). Permite trocar o ORM ou database sem alterar lógica de negócio. Facilita testes unitários com mocks.
+
+### IV. Official Documentation as Single Source of Truth
+
+**Aderência Estrita à Documentação Oficial**: Implementações DEVEM ser baseadas EXCLUSIVAMENTE na documentação oficial atualizada das frameworks (Next.js, Prisma, Better-Auth, Zod).
+
+- Consultar servidores MCP (Model Context Protocol) quando disponíveis
+- Consultar arquivos `LLMs.txt` fornecidos pelas bibliotecas (ex: Better-Auth)
+- Validar contra múltiplas fontes de documentação para garantir precisão
+- Código ou métodos obsoletos, incorretos ou "inventados" NÃO PODEM ser gerados
+- A pasta `Docs/` no projeto DEVE ser consultada antes de qualquer implementação
+
+**Rationale**: Evita bugs causados por APIs depreciadas, garante compatibilidade com versões atuais e segue melhores práticas recomendadas pela comunidade.
+
+### V. Security-First Design
+
+**Validação e Autorização no Servidor**: Toda validação de dados DEVE ocorrer no servidor. Regras de autorização do Better-Auth DEVEM ser aplicadas em Server Components e Route Handlers.
+
+- Validação de entrada DEVE usar Zod em Server Actions ou Route Handlers
+- Better-Auth DEVE ser usado para autenticação e autorização "headless"
+- Credenciais de banco de dados DEVEM ser lidas EXCLUSIVAMENTE do arquivo `.env`
+- Server Components DEVEM verificar permissões antes de renderizar conteúdo sensível
+- Client Components NÃO PODEM conter lógica de autorização crítica
+
+**Rationale**: Previne ataques de injeção, garante que regras de negócio sejam aplicadas de forma consistente e protege dados sensíveis.
+
+### VI. React Component Design Patterns
+
+**Composição e Separação de Responsabilidades**: Componentes React DEVEM seguir padrões de design claros, favorecendo composição e separação de estado da renderização.
+
+- Lógica de estado (hooks) DEVE ser separada de componentes puros de UI
+- Preferir composição de componentes sobre herança
+- Client Components DEVEM ser marcados explicitamente com `"use client"`
+- Server Components são padrão e DEVEM ser preferidos quando possível
+- Props DEVEM ter tipos explícitos (TypeScript interfaces)
+
+**Rationale**: Melhora reutilização, testabilidade e performance (Server Components reduzem JavaScript no cliente).
+
+### VII. Test Coverage & Continuous Integration
+
+**Testes Abrangentes e Automação**: Cobertura de testes unitários e de integração DEVE ser abrangente, com foco especial em lógica de negócio e integrações críticas.
+
+- Testes unitários para lógica de negócio (domain e application layers) são OBRIGATÓRIOS
+- Testes de integração para Server Actions e Route Handlers são OBRIGATÓRIOS
+- Jest e React Testing Library DEVEM ser usados como ferramentas de teste
+- CI (Continuous Integration) DEVE executar testes automaticamente em cada commit
+- Coverage mínimo de 80% para código de lógica de negócio
+
+**Rationale**: Previne regressões, garante qualidade contínua e permite refatoração confiante.
+
+## Technology Stack Requirements
+
+### Mandatory Technologies
+
+**Frontend & API**:
+- Next.js (App Router) - Versão mais recente estável
+- React Server Components como padrão
+- Client Components apenas quando necessário (interatividade)
+
+**Database & ORM**:
+- PostgreSQL - Rodando em container Docker (configuração via `.env`)
+- Prisma ORM - Encapsulado via Repository Pattern
+- Migrations DEVEM ser versionadas e aplicadas via `prisma migrate`
+
+**Authentication**:
+- Better-Auth - Framework "headless" de autenticação
+- Configuração DEVE seguir documentação oficial do Better-Auth
+- Prisma Adapter DEVE ser usado para integração com PostgreSQL
+
+**Validation & Type Safety**:
+- Zod - Validação de schemas no servidor
+- TypeScript - Modo `strict` habilitado
+
+**Testing**:
+- Jest - Framework de testes
+- React Testing Library - Testes de componentes
+- Supertest (opcional) - Testes de API
+
+### Prohibited Practices
+
+- Uso de `any` em TypeScript (sem justificativa documentada)
+- Importação direta de `@prisma/client` fora da camada de infraestrutura
+- Lógica de negócio em componentes React ou Route Handlers
+- Validação de dados apenas no cliente
+- Credenciais hardcoded (DEVEM estar em `.env`)
+
+## Development Workflow & Quality Gates
+
+### Code Review Requirements
+
+Todo código DEVE passar por revisão antes de merge, verificando:
+
+1. **Clean Architecture Compliance**: Dependências fluem corretamente?
+2. **Type Safety**: Sem uso de `any`? Tipos bem documentados?
+3. **Abstraction**: Prisma encapsulado? Interfaces bem definidas?
+4. **Security**: Validação no servidor? Autorização aplicada?
+5. **Testing**: Testes unitários e de integração presentes?
+6. **Documentation**: Código complexo documentado com JSDoc?
+
+### Quality Gates (CI Pipeline)
+
+Antes de aprovar um PR, os seguintes gates DEVEM passar:
+
+- ✅ Build TypeScript sem erros (`npm run build`)
+- ✅ Linting sem warnings (`npm run lint`)
+- ✅ Todos os testes passam (`npm run test`)
+- ✅ Coverage mínimo de 80% em lógica de negócio
+- ✅ Sem vulnerabilidades críticas em dependências (`npm audit`)
+
+### Architecture Decision Records (ADRs)
+
+Decisões arquiteturais significativas DEVEM ser documentadas em `docs/adr/` seguindo o formato:
+
+```
+# ADR-###: [Título da Decisão]
+
+## Status: [Proposed | Accepted | Deprecated | Superseded]
+
+## Context
+[Explicação do problema]
+
+## Decision
+[O que foi decidido]
+
+## Consequences
+[Implicações da decisão]
+```
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+### Amendment Procedure
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+Esta constituição PODE ser emendada seguindo o processo:
+
+1. Proposta de emenda documentada com justificativa
+2. Revisão por stakeholders principais
+3. Atualização de templates dependentes (plan, spec, tasks)
+4. Aprovação formal e bump de versão semântica
+5. Comunicação de mudanças a todos os desenvolvedores
+
+### Versioning Policy
+
+Versão semântica (MAJOR.MINOR.PATCH):
+
+- **MAJOR**: Mudanças incompatíveis com governança anterior (remoção/redefinição de princípios)
+- **MINOR**: Novos princípios/seções ou expansões materiais de orientação
+- **PATCH**: Clarificações, correções de texto, refinamentos não-semânticos
+
+### Compliance Review
+
+Todos os PRs DEVEM verificar conformidade com esta constituição. Complexidade DEVE ser justificada quando violar princípios (documentar em `plan.md` seção "Complexity Tracking").
+
+### Runtime Development Guidance
+
+Para orientações específicas de desenvolvimento em tempo de execução, consultar:
+- `.github/prompts/speckit.constitution.prompt.md` - Atualização da constituição
+- `.specify/templates/plan-template.md` - Planejamento de features
+- `.specify/templates/spec-template.md` - Especificação de requisitos
+- `.specify/templates/tasks-template.md` - Organização de tarefas
+
+**Version**: 1.0.0 | **Ratified**: 2025-11-08 | **Last Amended**: 2025-11-08

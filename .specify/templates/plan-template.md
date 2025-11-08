@@ -13,25 +13,55 @@
 
 <!--
   ACTION REQUIRED: Replace the content in this section with the technical details
-  for the project. The structure here is presented in advisory capacity to guide
-  the iteration process.
+  for the project. For App-Specify, the following defaults apply unless overridden.
 -->
 
-**Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]  
-**Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]  
-**Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]  
-**Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]  
-**Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
-**Project Type**: [single/web/mobile - determines source structure]  
-**Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]  
-**Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]  
-**Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
+**Language/Version**: TypeScript 5+ (strict mode enabled)
+**Framework**: Next.js 16+ (App Router)
+**Primary Dependencies**: React 19+, Better-Auth (latest), Prisma (latest), Zod (latest)
+**Storage**: PostgreSQL (via Docker container, connection via .env)
+**ORM**: Prisma ORM (encapsulated via Repository Pattern)
+**Authentication**: Better-Auth (headless framework with Prisma adapter)
+**Validation**: Zod (server-side schemas)
+**Testing**: Jest, React Testing Library
+**Target Platform**: Web (Server-side rendering + Client components)
+**Architecture**: Clean Architecture (core/domain + core/application + infrastructure + app)
+**Project Type**: Next.js web application (App Router)
+**Performance Goals**: [domain-specific, e.g., <200ms API response, <3s page load or NEEDS CLARIFICATION]
+**Constraints**: [domain-specific, e.g., TypeScript strict mode, no `any` types, 80% test coverage or NEEDS CLARIFICATION]
+**Scale/Scope**: [domain-specific, e.g., 1k users, 20 routes, 50 components or NEEDS CLARIFICATION]
 
 ## Constitution Check
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+**Clean Architecture Compliance**:
+- [ ] Core business logic is framework-agnostic (no Next.js/Prisma imports in `core/`)
+- [ ] Dependencies flow inward (UI → Application → Domain)
+- [ ] Repository interfaces defined in `core/application/ports/`
+- [ ] Prisma implementations in `infrastructure/database/repositories/`
+
+**Type Safety**:
+- [ ] TypeScript strict mode enabled
+- [ ] No usage of `any` (or justified with JSDoc comment)
+- [ ] All public APIs have JSDoc documentation
+
+**Security**:
+- [ ] All data validation occurs on server (Zod schemas)
+- [ ] Better-Auth authorization applied in Server Components/Route Handlers
+- [ ] No credentials hardcoded (`.env` only)
+
+**Testing**:
+- [ ] Unit tests for core business logic planned
+- [ ] Integration tests for Server Actions/Route Handlers planned
+- [ ] 80% coverage target for business logic
+
+**Documentation-First**:
+- [ ] Official Next.js/Prisma/Better-Auth docs consulted
+- [ ] MCP servers or LLMs.txt files referenced
+- [ ] `Docs/` folder checked for project-specific guidance
+
+[Additional gates determined based on feature requirements]
 
 ## Project Structure
 
@@ -56,39 +86,54 @@ specs/[###-feature]/
 -->
 
 ```text
-# [REMOVE IF UNUSED] Option 1: Single project (DEFAULT)
+# [REMOVE IF UNUSED] Option 1: Next.js App with Clean Architecture (DEFAULT for App-Specify)
 src/
-├── models/
-├── services/
-├── cli/
-└── lib/
+├── app/                      # Next.js App Router (Presentation Layer)
+│   ├── (auth)/              # Route groups
+│   ├── api/                 # Route Handlers
+│   └── _components/         # Server/Client Components
+├── core/                    # Core Business Logic (Framework-agnostic)
+│   ├── domain/              # Entities, Value Objects, Domain Services
+│   │   ├── entities/
+│   │   ├── value-objects/
+│   │   └── errors/
+│   └── application/         # Use Cases, DTOs, Repository Interfaces
+│       ├── use-cases/
+│       ├── dtos/
+│       └── ports/           # Interfaces (Repositories, Services)
+├── infrastructure/          # External Concerns (Framework-specific)
+│   ├── auth/               # Better-Auth configuration
+│   ├── database/           # Prisma client, Repository implementations
+│   │   ├── prisma/         # Schema, migrations
+│   │   └── repositories/   # Repository Pattern implementations
+│   ├── validation/         # Zod schemas
+│   └── config/             # Environment, settings
+└── shared/                 # Shared utilities (if needed)
+    ├── types/
+    └── utils/
 
 tests/
-├── contract/
-├── integration/
-└── unit/
+├── unit/                   # Core business logic tests
+├── integration/            # Server Actions, Route Handlers, Repository tests
+└── e2e/                    # End-to-end tests (optional)
 
-# [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
-backend/
-├── src/
-│   ├── models/
-│   ├── services/
-│   └── api/
-└── tests/
+# [REMOVE IF UNUSED] Option 2: Monorepo with multiple Next.js apps
+apps/
+├── web/                    # Main web application (structure as Option 1)
+└── admin/                  # Admin dashboard (structure as Option 1)
 
-frontend/
-├── src/
-│   ├── components/
-│   ├── pages/
-│   └── services/
-└── tests/
+packages/
+├── shared-core/            # Shared business logic
+├── ui/                     # Shared UI components
+└── config/                 # Shared configuration
 
-# [REMOVE IF UNUSED] Option 3: Mobile + API (when "iOS/Android" detected)
-api/
-└── [same as backend above]
+# [REMOVE IF UNUSED] Option 3: Mobile + Next.js API
+apps/
+└── api/                    # Next.js API (structure as Option 1, focus on api routes)
 
-ios/ or android/
-└── [platform-specific structure: feature modules, UI flows, platform tests]
+mobile/
+├── ios/                    # iOS app
+└── android/                # Android app
 ```
 
 **Structure Decision**: [Document the selected structure and reference the real
