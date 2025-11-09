@@ -70,7 +70,7 @@ Paths shown below assume Next.js Clean Architecture - adjust based on plan.md st
 Examples of foundational tasks (adjust based on your project):
 
 - [ ] T004 Setup Prisma schema and migrations in `src/infrastructure/database/prisma/`
-- [ ] T005 [P] Configure Better-Auth in `src/infrastructure/auth/`
+- [ ] T005 [P] Configure Better-Auth in `src/infrastructure/auth/` (garantir `advanced.database.generateId = false`)
 - [ ] T006 [P] Setup Next.js App Router structure in `src/app/`
 - [ ] T007 Define core domain entities in `src/core/domain/entities/`
 - [ ] T008 Define repository interfaces (ports) in `src/core/application/ports/`

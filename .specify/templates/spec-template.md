@@ -83,7 +83,7 @@
   
   IMPORTANT (App-Specify Constitution): 
   - All data validation MUST be server-side using Zod schemas
-  - All authentication/authorization MUST use Better-Auth
+  - All authentication/authorization MUST use Better-Auth (com `advanced.database.generateId = false`)
   - All database access MUST go through Repository Pattern (no direct Prisma in core)
   - All sensitive operations MUST be in Server Components or Route Handlers
 -->

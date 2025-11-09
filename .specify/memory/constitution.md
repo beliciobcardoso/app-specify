@@ -1,28 +1,28 @@
 <!--
-Sync Impact Report - Version 1.0.0
+Sync Impact Report - Version 1.2.0
 ════════════════════════════════════════════════════════════════════════════════
-Version Change: Initial Constitution (0.0.0 → 1.0.0)
-Bump Rationale: MAJOR version - First ratification of project governance framework
+Version Change: 1.1.0 → 1.2.0
+Bump Rationale: MINOR - obrigação explícita de Better-Auth delegar IDs ao Prisma
 
 Modified Principles:
-  - N/A (Initial creation)
+  - N/A (ajuste em requisitos de stack)
+
+Modified Sections:
+  - Technology Stack Requirements → Authentication (detalha advanced.database.generateId)
 
 Added Sections:
-  - Core Principles (7 principles defined)
-  - Technology Stack Requirements
-  - Development Workflow & Quality Gates
-  - Governance
+  - N/A
 
 Removed Sections:
-  - N/A (Initial creation)
+  - N/A
 
 Templates Requiring Updates:
-  ✅ plan-template.md - Constitution Check section already aligned
-  ✅ spec-template.md - Requirements structure compatible
-  ✅ tasks-template.md - Task organization supports principle-driven phases
+  ✅ plan-template.md - Constituição Check agora inclui verificação Better-Auth
+  ✅ spec-template.md - comentários de requisitos reforçam delegação de IDs
+  ✅ tasks-template.md - fase fundamental cita configuração Better-Auth
 
 Follow-up TODOs:
-  - None (all placeholders filled)
+  - Nenhum
 
 ═══════════════════════════════════════════════════════════════════════════════
 -->
@@ -123,11 +123,14 @@ Follow-up TODOs:
 - PostgreSQL - Rodando em container Docker (configuração via `.env`)
 - Prisma ORM - Encapsulado via Repository Pattern
 - Migrations DEVEM ser versionadas e aplicadas via `prisma migrate`
+- IDs de usuário e demais chaves primárias DEVEM usar `@default(uuid())` no schema do Prisma,
+  garantindo que Better-Auth confie na geração realizada pelo banco
 
 **Authentication**:
 - Better-Auth - Framework "headless" de autenticação
 - Configuração DEVE seguir documentação oficial do Better-Auth
 - Prisma Adapter DEVE ser usado para integração com PostgreSQL
+- Campo `advanced.database.generateId` DEVE ser `false` para delegar criação de IDs ao Prisma
 
 **Validation & Type Safety**:
 - Zod - Validação de schemas no servidor
@@ -220,4 +223,4 @@ Para orientações específicas de desenvolvimento em tempo de execução, consu
 - `.specify/templates/spec-template.md` - Especificação de requisitos
 - `.specify/templates/tasks-template.md` - Organização de tarefas
 
-**Version**: 1.0.0 | **Ratified**: 2025-11-08 | **Last Amended**: 2025-11-08
+**Version**: 1.2.0 | **Ratified**: 2025-11-08 | **Last Amended**: 2025-11-09

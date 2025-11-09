@@ -50,6 +50,7 @@
 - [ ] All data validation occurs on server (Zod schemas)
 - [ ] Better-Auth authorization applied in Server Components/Route Handlers
 - [ ] No credentials hardcoded (`.env` only)
+- [ ] Better-Auth `advanced.database.generateId` definido como `false` para delegar IDs ao Prisma
 
 **Testing**:
 - [ ] Unit tests for core business logic planned
