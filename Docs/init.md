@@ -12,33 +12,21 @@ Bem-vindo ao guia de início rápido do Speckit! Este documento fornecerá uma v
 
            Esta é a especificação para a criação de um jogo de Damas completo. O sistema deve implementar um tabuleiro de 64 casas (8x8) com cores alternadas, para dois jogadores (12 peças claras vs. 12 escuras) posicionados nas casas escuras das três primeiras fileiras de cada lado. O objetivo principal é a captura ou bloqueio total das peças do oponente. A peça comum (pedra) move-se apenas uma casa para frente na diagonal, sempre em casas escuras. A captura é o elemento central e obrigatório: o jogador deve saltar sobre uma peça adversária (para uma casa vazia) se a oportunidade existir, podendo capturar tanto para frente quanto para trás (regra brasileira). Se múltiplas capturas forem possíveis na mesma jogada, elas devem ser continuadas; se houver diferentes caminhos de captura, a "Lei da Maioria" (capturar o maior número de peças) é obrigatória. A promoção para "Dama" ocorre quando uma pedra alcança a oitava fileira (base do oponente); a Dama ganha movimento de longo alcance (similar ao Bispo, por múltiplas casas vazias na diagonal, para frente e para trás) e captura à distância, aterrissando obrigatoriamente na casa vazia imediatamente após a peça capturada, também seguindo a Lei da Maioria. As condições de término são: a Vitória é declarada para o jogador que tiver o maior número de peças; a Derrota é declarada para o jogador com o menor número de peças ou nenhuma peça. Se ambos os jogadores ficarem sem movimentos legais (sufocados) e o número de peças for igual, o jogo deve ser declarado como Empate. Adicionalmente, um jogador pode Desistir da partida a qualquer momento, o que será registrado como uma derrota para ele. O sistema deve incluir três modos de jogo: 1) Jogo local/prática, 2) Jogo para dois jogadores em rede (online), e 3) Jogo contra um Bot (IA) com diferentes níveis de dificuldade. Funcionalidades adicionais necessárias incluem a capacidade de salvar e carregar partidas em andamento. A interface do usuário (UI) deve ser amigável, responsiva e fornecer feedback visual claro para movimentos válidos e inválidos. Toda a lógica de regras e funcionalidades do jogo deve ser claramente documentada.
 
+           1.2.1 /speckit.clarify - Fazer perguntas estruturadas para reduzir riscos em áreas ambíguas antes do planejamento (execute antes de /speckit.plan, se usado)
+
         1.3 /speckit.plan - Criar o plano de implementação
 
             Este é o plano para implementar o Jogo de Damas, aderindo rigorosamente à nossa Constituição. A lógica central do jogo ("motor") – regras de movimento, captura obrigatória, "Lei da Maioria", promoção e verificação de condições de vitória/derrota/empate – será implementada como uma camada core (domain e application/use-cases) em TypeScript puro, totalmente desacoplada. O estado do jogo será armazenado no backend para permitir que os jogadores retomem partidas em andamento, persistindo em nosso banco de dados PostgreSQL (Docker) via Prisma ORM. O schema.prisma definirá User, Game (estado do tabuleiro) e GameStats (para estatísticas de jogo), com acesso via Repository Pattern e Interfaces. Implementaremos um sistema de autenticação simples via Better-Auth (com prismaAdapter) para que os usuários possam salvar seu progresso e estatísticas. A interface (UI) será construída com Next.js (App Router), utilizando React (Client/Server Components) e Tailwind CSS para estilização. O design será focado em ser responsivo e acessível, garantindo uma experiência de usuário (UX) intuitiva. Para o jogo em rede (online), implementaremos uma comunicação em tempo real usando WebSocket (ex: Socket.io ou ws integrado ao servidor Next.js) para notificar os oponentes sobre as jogadas. As jogadas serão executadas via Server Actions, que usarão Zod para validação, chamarão os casos de uso do core e atualizarão o estado no banco, revalidando a UI e disparando os eventos WebSocket. O modo Bot (IA) será um BotService (Minimax) na infrastructure. A documentação (JSDoc) será gerada para o core e para as APIs.
+
+            1.3.1 /speckit.checklist - Gerar listas de verificação de qualidade para validar a completude, clareza e consistência dos requisitos (após /speckit.plan)
 
         1.4 /speckit.tasks - Gerar tarefas executáveis
 
             Divida o plano de implementação em Tarefas Principais gerenciáveis, atribuindo prioridades e estimativas de tempo a cada uma. As tarefas devem cobrir todas as fases: configuração do ambiente, criação da interface do usuário (UI), implementação da lógica do jogo (Core), integração com o backend, testes e documentação. É mandatório que cada Tarefa Principal seja decomposta em micro-tarefas específicas e acionáveis. Após a conclusão de cada Tarefa Principal, iniciaremos um ciclo de revisão obrigatório: você deve primeiro verificar a conformidade com a Constituição e a Especificação e, em seguida, solicitar ativamente o feedback do desenvolvedor que monitora o desenvolvimento desta aplicação. Só o desenvolvedor que monitora o desenvolvimento desta aplicação avaliara se a tarefa foi concluída com sucesso ou se necessita de ajustes, e só então avançaremos.
 
+            1.4.1 /speckit.analyze - Relatório de consistência e alinhamento entre artefatos (após /speckit.tasks, antes de /speckit.implement)
+
         1.5 /speckit.implement - Executar a implementação
 
             /speckit.implement
 
-# Comandos de Aprimoramento de Especificações
-
-    3. Use comandos opcionais para melhorar a qualidade e confiança das especificações:
-        3.1 /speckit.clarify - Fazer perguntas estruturadas para reduzir riscos em áreas ambíguas antes do planejamento (execute antes de /speckit.plan, se usado)
-        3.2 /speckit.analyze - Relatório de consistência e alinhamento entre artefatos (após /speckit.tasks, antes de /speckit.implement)
-        3.3 /speckit.checklist - Gerar listas de verificação de qualidade para validar a completude, clareza e consistência dos requisitos (após /speckit.plan)
-
-# Dicas para Uso Eficaz
-
-    5. Dicas para maximizar a eficácia do Grud:
-        5.1 Forneça contexto claro e detalhado ao usar comandos para melhores resultados
-        5.2 Utilize comandos de refinamento e esclarecimento para melhorar a qualidade das especificações
-        5.3 Revise e analise as especificações regularmente para garantir consistência e alinhamento
-        5.4 Colabore com sua equipe durante todo o processo de criação de especificações
-        5.5 Mantenha um histórico de mudanças para rastrear a evolução das especificações
-        5.6 Explore comandos avançados para funcionalidades adicionais conforme necessário
-        5.7 Teste as especificações com casos de teste gerados para garantir cobertura completa dos requisitos
-        5.8 Personalize templates e estilos para atender às necessidades específicas do seu projeto
