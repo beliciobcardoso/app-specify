@@ -148,13 +148,13 @@ model Game {
   result      GameResult?
   winnerId    String?
   
-  // Criador
-  creator     User       @relation(fields: [creatorId], references: [id])
-  creatorId   String
+  // Criador (opcional para jogos locais)
+  creator     User?      @relation(fields: [creatorId], references: [id], onDelete: SetNull)
+  creatorId   String?
   
   // Sala associada (para modo online)
   roomId      String?
-  room        Room?      @relation(fields: [roomId], references: [id])
+  room        Room?      @relation(fields: [roomId], references: [id], onDelete: SetNull)
   
   // Relacionamentos
   moves       Move[]

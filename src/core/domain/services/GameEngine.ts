@@ -19,6 +19,8 @@ export interface MoveExecutionResult {
   capturedPositions: Position[];
   /** Se houve promoção a Dama */
   wasPromoted: boolean;
+  /** Se a peça pode continuar capturando (capturas múltiplas) */
+  canContinueCapturing: boolean;
   /** Condição de vitória atual */
   winCondition: WinConditionResult;
   /** Mensagem de erro (se falhou) */
@@ -83,6 +85,7 @@ export class GameEngine {
         board,
         capturedPositions: [],
         wasPromoted: false,
+        canContinueCapturing: false,
         winCondition: this.winConditionChecker.checkWinCondition(
           board,
           currentPlayerColor
@@ -103,6 +106,7 @@ export class GameEngine {
         board,
         capturedPositions: [],
         wasPromoted: false,
+        canContinueCapturing: false,
         winCondition: this.winConditionChecker.checkWinCondition(
           board,
           currentPlayerColor
@@ -126,6 +130,7 @@ export class GameEngine {
           board,
           capturedPositions: [],
           wasPromoted: false,
+          canContinueCapturing: false,
           winCondition: this.winConditionChecker.checkWinCondition(
             board,
             currentPlayerColor
@@ -137,6 +142,12 @@ export class GameEngine {
     }
 
     // 4. Executar movimento no tabuleiro
+    // Verificar se vai promover ANTES de mover
+    const pieceBeforeMove = board.getPieceAt(from);
+    const willPromote =
+      pieceBeforeMove &&
+      this.promotionService.willPromote(to, pieceBeforeMove.color, pieceBeforeMove.type);
+
     const updatedBoard = this.applyMove(board, from, to);
 
     // 5. Capturar peças (se houver)
@@ -146,16 +157,17 @@ export class GameEngine {
       updatedBoard.removePiece(capturedPos);
     }
 
-    // 6. Verificar promoção (FR-006)
-    const piece = updatedBoard.getPieceAt(to);
-    let wasPromoted = false;
+    // 6. A promoção já foi aplicada no movePiece do Board
+    const wasPromoted = willPromote || false;
 
-    if (piece && this.promotionService.willPromote(to, piece.color, piece.type)) {
-      piece.promote();
-      wasPromoted = true;
-    }
+    // 7. Verificar se pode continuar capturando (capturas múltiplas)
+    // Só verifica se houve captura e não houve promoção
+    const canContinueCapturing =
+      capturedPositions.length > 0 &&
+      !wasPromoted &&
+      this.captureDetector.pieceHasCaptures(updatedBoard, to, currentPlayerColor);
 
-    // 7. Verificar condição de vitória/empate
+    // 8. Verificar condição de vitória/empate
     const winCondition = this.winConditionChecker.checkWinCondition(
       updatedBoard,
       currentPlayerColor
@@ -166,6 +178,7 @@ export class GameEngine {
       board: updatedBoard,
       capturedPositions,
       wasPromoted,
+      canContinueCapturing,
       winCondition,
     };
   }

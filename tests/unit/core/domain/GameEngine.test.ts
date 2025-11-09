@@ -57,19 +57,20 @@ describe('GameEngine', () => {
       const pieces = [
         new Piece('p1', PieceColor.LIGHT, PieceType.COMMON, new Position(5, 0)),
         new Piece('p2', PieceColor.DARK, PieceType.COMMON, new Position(4, 1)),
+        new Piece('p3', PieceColor.LIGHT, PieceType.COMMON, new Position(5, 4)),
       ];
       const board = new Board(pieces);
 
-      // Tenta movimento simples quando há captura disponível
+      // Tenta movimento simples da peça p3 quando p1 tem captura disponível
       const result = engine.executeMove(
         board,
-        new Position(5, 0),
-        new Position(4, 3), // Posição inválida, mas seria simples
+        new Position(5, 4),
+        new Position(4, 5),
         PieceColor.LIGHT
       );
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('obrigatória');
+      expect(result.error?.toLowerCase()).toContain('captura');
     });
 
     it('should execute mandatory capture', () => {
@@ -124,9 +125,11 @@ describe('GameEngine', () => {
       );
 
       expect(result.success).toBe(true);
-      expect(result.wasPromoted).toBe(true);
-      const promotedPiece = result.board.getPieceAt(new Position(0, 1));
-      expect(promotedPiece?.type).toBe(PieceType.QUEEN);
+      if (result.success) {
+        expect(result.wasPromoted).toBe(true);
+        const promotedPiece = result.board.getPieceAt(new Position(0, 1));
+        expect(promotedPiece?.type).toBe(PieceType.QUEEN);
+      }
     });
 
     it('should promote DARK piece when reaching row 7', () => {
@@ -143,9 +146,11 @@ describe('GameEngine', () => {
       );
 
       expect(result.success).toBe(true);
-      expect(result.wasPromoted).toBe(true);
-      const promotedPiece = result.board.getPieceAt(new Position(7, 2));
-      expect(promotedPiece?.type).toBe(PieceType.QUEEN);
+      if (result.success) {
+        expect(result.wasPromoted).toBe(true);
+        const promotedPiece = result.board.getPieceAt(new Position(7, 2));
+        expect(promotedPiece?.type).toBe(PieceType.QUEEN);
+      }
     });
   });
 
@@ -200,7 +205,12 @@ describe('GameEngine', () => {
 
       // Deve ter apenas a peça que pode capturar
       expect(validMoves.size).toBeGreaterThan(0);
-      expect(validMoves.has(new Position(5, 0))).toBe(true);
+      
+      // Verifica se a peça em (5,0) está no mapa de movimentos válidos
+      const hasCapturePiece = Array.from(validMoves.keys()).some(
+        (pos) => pos.row === 5 && pos.col === 0
+      );
+      expect(hasCapturePiece).toBe(true);
     });
 
     it('should return all simple moves when no captures available', () => {

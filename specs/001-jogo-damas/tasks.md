@@ -84,27 +84,27 @@
 
 ### Implementação Application Layer (Use Cases)
 
-- [ ] T035 [P] [US1] Criar DTOs em `src/core/application/dtos/`: ExecuteMoveDTO.ts, GameStateDTO.ts
-- [ ] T036 [US1] Implementar StartLocalGameUseCase em `src/core/application/use-cases/local/StartLocalGameUseCase.ts` (criar partida local, inicializar tabuleiro 8x8, posicionar 12 peças de cada cor nas 3 primeiras fileiras de casas escuras)
-- [ ] T037 [US1] Implementar ExecuteMoveUseCase em `src/core/application/use-cases/local/ExecuteMoveUseCase.ts` (chamar GameEngine para validar e executar jogada, atualizar estado do jogo, logar movimento) - depende de T034
+- [X] T035 [P] [US1] Criar DTOs em `src/core/application/dtos/`: ExecuteMoveDTO.ts, GameStateDTO.ts
+- [X] T036 [US1] Implementar StartLocalGameUseCase em `src/core/application/use-cases/local/StartLocalGameUseCase.ts` (criar partida local, inicializar tabuleiro 8x8, posicionar 12 peças de cada cor nas 3 primeiras fileiras de casas escuras)
+- [X] T037 [US1] Implementar ExecuteMoveUseCase em `src/core/application/use-cases/local/ExecuteMoveUseCase.ts` (chamar GameEngine para validar e executar jogada, atualizar estado do jogo, logar movimento) - depende de T034
 
 ### Implementação Presentation Layer (UI)
 
-- [ ] T038 [P] [US1] Criar componente Board em `src/app/_components/game/Board.tsx` (Client Component: renderizar tabuleiro 8x8 com cores alternadas, detectar cliques em peças/casas)
-- [ ] T039 [P] [US1] Criar componente Piece em `src/app/_components/game/Piece.tsx` (exibir peça com cor e tipo - comum ou Dama, aplicar estilos visuais diferenciados)
-- [ ] T040 [P] [US1] Criar componente MoveIndicator em `src/app/_components/game/MoveIndicator.tsx` (destacar movimentos válidos, indicar capturas obrigatórias visualmente)
-- [ ] T041 [P] [US1] Criar componente GameStatus em `src/app/_components/game/GameStatus.tsx` (exibir turno atual, mensagem de vitória/derrota/empate, botão de desistência)
-- [ ] T042 [US1] Implementar Server Action executeMove em `src/app/_actions/game-actions.ts` (validar entrada com ExecuteMoveSchema Zod, chamar ExecuteMoveUseCase, retornar GameStateDTO ou erro) - depende de T037
-- [ ] T043 [US1] Implementar Server Action startLocalGame em `src/app/_actions/game-actions.ts` (chamar StartLocalGameUseCase, retornar GameStateDTO inicial) - depende de T036
-- [ ] T044 [US1] Criar página de jogo local em `src/app/(auth)/game/local/page.tsx` (Server Component: orquestrar Board, GameStatus, MoveIndicator, integrar com Server Actions) - depende de T038-T043
+- [X] T038 [P] [US1] Criar componente Board em `src/app/_components/game/Board.tsx` (Client Component: renderizar tabuleiro 8x8 com cores alternadas, detectar cliques em peças/casas)
+- [X] T039 [P] [US1] Criar componente Piece em `src/app/_components/game/Piece.tsx` (exibir peça com cor e tipo - comum ou Dama, aplicar estilos visuais diferenciados)
+- [X] T040 [P] [US1] Criar componente MoveIndicator em `src/app/_components/game/MoveIndicator.tsx` (destacar movimentos válidos, indicar capturas obrigatórias visualmente)
+- [X] T041 [P] [US1] Criar componente GameStatus em `src/app/_components/game/GameStatus.tsx` (exibir turno atual, mensagem de vitória/derrota/empate, botão de desistência)
+- [X] T042 [US1] Implementar Server Action executeMove em `src/app/_actions/game-actions.ts` (validar entrada com ExecuteMoveSchema Zod, chamar ExecuteMoveUseCase, retornar GameStateDTO ou erro) - depende de T037
+- [X] T043 [US1] Implementar Server Action startLocalGame em `src/app/_actions/game-actions.ts` (chamar StartLocalGameUseCase, retornar GameStateDTO inicial) - depende de T036
+- [X] T044 [US1] Criar página de jogo local em `src/app/(auth)/game/local/page.tsx` (Server Component: orquestrar Board, GameStatus, MoveIndicator, integrar com Server Actions) - depende de T038-T043
 
 ### Testes e Validação
 
-- [ ] T045 [P] [US1] Teste unitário para GameEngine em `tests/unit/core/domain/GameEngine.test.ts` (testar execução de movimento simples, captura obrigatória, Lei da Maioria, promoção, win conditions)
-- [ ] T046 [P] [US1] Teste unitário para MoveValidator em `tests/unit/core/domain/MoveValidator.test.ts` (testar validação de diagonal, casas escuras, direções válidas para comum vs Dama)
-- [ ] T047 [P] [US1] Teste unitário para LeiDaMaioriaService em `tests/unit/core/domain/LeiDaMaioriaService.test.ts` (testar cálculo de caminhos de captura, seleção do caminho com mais peças)
-- [ ] T048 [P] [US1] Teste de integração para executeMove Server Action em `tests/integration/app/game-actions.test.ts` (testar validação Zod, chamada de use case, retorno de GameStateDTO)
-- [ ] T049 [US1] Validar User Story 1 conforme Acceptance Scenarios da spec.md (6 cenários: movimento inválido rejeitado, captura obrigatória aplicada, promoção a Dama, vitória por captura total, empate, Lei da Maioria)
+- [X] T045 [P] [US1] Teste unitário para GameEngine em `tests/unit/core/domain/GameEngine.test.ts` (testar execução de movimento simples, captura obrigatória, Lei da Maioria, promoção, win conditions)
+- [X] T046 [P] [US1] Teste unitário para MoveValidator em `tests/unit/core/domain/MoveValidator.test.ts` (testar validação de diagonal, casas escuras, direções válidas para comum vs Dama)
+- [X] T047 [P] [US1] Teste unitário para LeiDaMaioriaService em `tests/unit/core/domain/LeiDaMaioriaService.test.ts` (testar cálculo de caminhos de captura, seleção do caminho com mais peças)
+- [X] T048 [P] [US1] Teste de integração para executeMove Server Action em `tests/integration/app/game-actions.test.ts` (testar validação Zod, chamada de use case, retorno de GameStateDTO)
+- [X] T049 [US1] Validar User Story 1 conforme Acceptance Scenarios da spec.md (6 cenários: movimento inválido rejeitado, captura obrigatória aplicada, promoção a Dama, vitória por captura total, empate, Lei da Maioria)
 
 **Estimativa Total Fase 3 (US1)**: ~24 horas
 

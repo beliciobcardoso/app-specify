@@ -31,7 +31,6 @@ export class PrismaGameRepository implements IGameRepository {
         lightPlayer: JSON.parse(JSON.stringify(gameData.player1)),
         darkPlayer: JSON.parse(JSON.stringify(gameData.player2)),
         winnerId: gameData.winnerId ?? null,
-        creatorId: gameData.player1.id === 'player1' ? 'local-game' : gameData.player1.id,
         roomId: null,
         duration: null,
         createdAt: gameData.createdAt,
