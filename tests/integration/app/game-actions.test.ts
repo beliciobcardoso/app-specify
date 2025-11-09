@@ -1,6 +1,6 @@
 /**
  * Testes de Integração para Server Actions (T048)
- * 
+ *
  * Testa:
  * - Validação Zod dos inputs
  * - Chamada correta dos Use Cases
@@ -8,12 +8,23 @@
  * - Error handling
  */
 
-import { executeMove, saveGame, startLocalGame } from '@/app/_actions/game-actions';
+import {
+  deleteGameHistory,
+  executeMove,
+  loadGame,
+  saveGame,
+  startLocalGame,
+} from '@/app/_actions/game-actions';
 import { PieceColor } from '@/core/domain/value-objects/PieceColor';
 import { Game } from '@/core/domain/entities/Game';
 import { PrismaGameRepository } from '@/infrastructure/database/repositories/PrismaGameRepository';
 import { PrismaClient } from '@prisma/client';
 import { randomUUID } from 'crypto';
+import { GameEngine } from '@/core/domain/services/GameEngine';
+import { Position } from '@/core/domain/value-objects/Position';
+import { Move } from '@/core/domain/entities/Move';
+import { PrismaMoveRepository } from '@/infrastructure/database/repositories/PrismaMoveRepository';
+import { GameResult } from '@/core/domain/value-objects/GameStatus';
 
 const createCuid = (suffix: string): string => `cjld2cjxh0000qzrmn831i7${suffix}`;
 
@@ -50,12 +61,8 @@ describe('Server Actions - Integration Tests', () => {
 
       expect(result.success).toBe(true);
       if (result.success) {
-        const lightPieces = result.data.pieces.filter(
-          (p) => p.color === PieceColor.LIGHT
-        );
-        const darkPieces = result.data.pieces.filter(
-          (p) => p.color === PieceColor.DARK
-        );
+        const lightPieces = result.data.pieces.filter((p) => p.color === PieceColor.LIGHT);
+        const darkPieces = result.data.pieces.filter((p) => p.color === PieceColor.DARK);
 
         expect(lightPieces.length).toBe(12);
         expect(darkPieces.length).toBe(12);
@@ -564,6 +571,138 @@ describe('Server Actions - Integration Tests', () => {
       await withPrisma(async ({ prisma }) => {
         await prisma.game.deleteMany({ where: { creatorId: userId } });
       });
+    });
+  });
+
+  describe('loadGame', () => {
+    it('should load saved game with move history', async () => {
+      const userId = createCuid('ls');
+      const engine = new GameEngine();
+      let gameId = '';
+
+      await withPrisma(async ({ prisma, repository }) => {
+        const moveRepository = new PrismaMoveRepository(prisma);
+        await prisma.move.deleteMany({});
+        await prisma.game.deleteMany({ where: { savedBy: { is: { id: userId } } } });
+
+        const game = Game.createLocalGame({ gameId: randomUUID(), creatorId: userId });
+        const from = new Position(5, 0);
+        const to = new Position(4, 1);
+        const executed = engine.executeMove(game.board, from, to, PieceColor.LIGHT);
+
+        expect(executed.success).toBe(true);
+        if (!executed.success) {
+          return;
+        }
+
+        game.board = executed.board;
+        const move = new Move(
+          randomUUID(),
+          from,
+          to,
+          PieceColor.LIGHT,
+          [],
+          executed.wasPromoted,
+          new Date()
+        );
+        game.addMove(move);
+        game.markAsSaved(userId, 'Partida salva');
+
+        await repository.save(game);
+        await moveRepository.save(game.id, move);
+        gameId = game.id;
+      });
+
+      const result = await loadGame({ gameId, userId });
+
+      expect(result.success).toBe(true);
+      if (!result.success) {
+        return;
+      }
+
+      expect(result.data.gameState.gameId).toBe(gameId);
+      expect(result.data.moveHistory.length).toBe(1);
+      expect(result.data.gameState.lastMove).toBeDefined();
+    });
+
+    it('should block unauthorized user', async () => {
+      const ownerId = createCuid('lt');
+      const requesterId = createCuid('lu');
+      let gameId = '';
+
+      await withPrisma(async ({ prisma, repository }) => {
+        await prisma.game.deleteMany({ where: { savedBy: { is: { id: ownerId } } } });
+
+        const game = Game.createLocalGame({ gameId: randomUUID(), creatorId: ownerId });
+        game.markAsSaved(ownerId, 'Privada');
+        await repository.save(game);
+        gameId = game.id;
+      });
+
+      const result = await loadGame({ gameId, userId: requesterId });
+
+      expect(result.success).toBe(false);
+      if (result.success) {
+        return;
+      }
+
+      expect(result.error).toContain('carregar esta partida');
+    });
+  });
+
+  describe('deleteGameHistory', () => {
+    it('should delete finished games for authorized user', async () => {
+      const userId = createCuid('lv');
+      let targetIds: string[] = [];
+
+      await withPrisma(async ({ prisma, repository }) => {
+        const moveRepository = new PrismaMoveRepository(prisma);
+        await prisma.move.deleteMany({});
+        await prisma.game.deleteMany({ where: { savedBy: { is: { id: userId } } } });
+
+        const gameA = Game.createLocalGame({ gameId: randomUUID(), creatorId: userId });
+        gameA.finish(GameResult.PLAYER1_WIN, userId);
+        const gameB = Game.createLocalGame({ gameId: randomUUID(), creatorId: userId });
+        gameB.finish(GameResult.PLAYER1_WIN, userId);
+
+        await repository.save(gameA);
+        await repository.save(gameB);
+        await moveRepository.deleteByGameId(gameA.id);
+        await moveRepository.deleteByGameId(gameB.id);
+
+        targetIds = [gameA.id, gameB.id];
+      });
+
+      const result = await deleteGameHistory({ userId, gameIds: targetIds });
+
+      expect(result.success).toBe(true);
+      if (!result.success) {
+        return;
+      }
+
+      expect(result.data.deletedCount).toBe(2);
+    });
+
+    it('should reject deletion by unauthorized user', async () => {
+      const ownerId = createCuid('lw');
+      const requesterId = createCuid('lx');
+      let gameId = '';
+
+      await withPrisma(async ({ repository }) => {
+        const game = Game.createLocalGame({ gameId: randomUUID(), creatorId: ownerId });
+        game.finish(GameResult.PLAYER1_WIN, ownerId);
+        await repository.save(game);
+        gameId = game.id;
+      });
+
+      const result = await deleteGameHistory({ userId: requesterId, gameIds: [gameId] });
+
+      expect(result.success).toBe(false);
+      if (result.success) {
+        return;
+      }
+
+      expect(result.error).toContain('alterar estas partidas');
     });
   });
 });

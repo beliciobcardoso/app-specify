@@ -6,6 +6,7 @@ import { IMoveRepository } from '@/core/application/ports/IMoveRepository';
 import { GameEngine } from '@/core/domain/services/GameEngine';
 import { Game } from '@/core/domain/entities/Game';
 import { Piece } from '@/core/domain/entities/Piece';
+import { Move } from '@/core/domain/entities/Move';
 import { Position } from '@/core/domain/value-objects/Position';
 import { GameResult as DomainGameResult } from '@/core/domain/value-objects/GameStatus';
 import { GameResult as EngineGameResult } from '@/core/domain/services/WinConditionChecker';
@@ -45,22 +46,13 @@ export class LoadGameUseCase {
 
     const moves = await this.moveRepository.findByGameId(game.id);
 
-    const gameState = this.toGameStateDTO(game);
-    const moveHistory = moves.map((move, index): MoveDTO => ({
-      id: move.id,
-      moveNumber: index + 1,
-      pieceColor: move.pieceColor,
-      from: { row: move.from.row, col: move.from.col },
-      to: { row: move.to.row, col: move.to.col },
-      capturedPositions: move.capturedPositions.map((pos) => ({ row: pos.row, col: pos.col })),
-      wasPromoted: move.wasPromoted,
-      executedAt: move.timestamp,
-    }));
+    const gameState = this.toGameStateDTO(game, moves);
+    const moveHistory = moves.map((move, index) => this.toMoveDTO(move, index + 1));
 
     return { gameState, moveHistory };
   }
 
-  private toGameStateDTO(game: Game): GameStateDTO {
+  private toGameStateDTO(game: Game, moves: Move[]): GameStateDTO {
     const pieces: PieceDTO[] = game.board.getAllPieces().map((piece: Piece) => ({
       id: piece.id,
       color: piece.color,
@@ -76,6 +68,9 @@ export class LoadGameUseCase {
       validMoves.set(`${origin.row},${origin.col}`, targets);
     });
 
+    const hasMandatoryCaptures = this.gameEngine.hasMandatoryCaptures(game.board, game.currentTurn);
+    const lastMove = this.getLastMoveDTO(moves);
+
     return {
       gameId: game.id,
       status: game.status,
@@ -83,9 +78,38 @@ export class LoadGameUseCase {
       currentTurn: game.currentTurn,
       pieces,
       validMoves,
-      hasMandatoryCaptures: validMovesMap.size > 0,
-      lastMove: undefined,
+      hasMandatoryCaptures,
+      lastMove,
       updatedAt: game.updatedAt,
+    };
+  }
+
+  private toMoveDTO(move: Move, moveNumber: number): MoveDTO {
+    return {
+      id: move.id,
+      moveNumber,
+      pieceColor: move.pieceColor,
+      from: { row: move.from.row, col: move.from.col },
+      to: { row: move.to.row, col: move.to.col },
+      capturedPositions: move.capturedPositions.map((pos) => ({ row: pos.row, col: pos.col })),
+      wasPromoted: move.wasPromoted,
+      executedAt: move.timestamp,
+    };
+  }
+
+  private getLastMoveDTO(moves: Move[]): GameStateDTO['lastMove'] {
+    const lastMove = moves.at(-1);
+
+    if (!lastMove) {
+      return undefined;
+    }
+
+    return {
+      from: { row: lastMove.from.row, col: lastMove.from.col },
+      to: { row: lastMove.to.row, col: lastMove.to.col },
+      capturedPositions: lastMove.capturedPositions.map((pos) => ({ row: pos.row, col: pos.col })),
+      wasPromoted: lastMove.wasPromoted,
+      canContinueCapturing: false,
     };
   }
 

@@ -141,8 +141,8 @@
 
 ### Testes e Validação
 
-- [ ] T060 [P] [US2] Teste unitário para SaveGameUseCase em `tests/unit/core/application/SaveGameUseCase.test.ts` (testar limite de 50 partidas, persistência de estado completo, logging)
-- [ ] T061 [P] [US2] Teste de integração para saveGame Server Action em `tests/integration/app/game-actions.test.ts` (testar validação Zod, autenticação Better-Auth, erro MAX_SAVED_GAMES)
+- [X] T060 [P] [US2] Teste unitário para SaveGameUseCase em `tests/unit/core/application/SaveGameUseCase.test.ts` (testar limite de 50 partidas, persistência de estado completo, logging)
+- [X] T061 [P] [US2] Teste de integração para saveGame Server Action em `tests/integration/app/game-actions.test.ts` (testar validação Zod, autenticação Better-Auth, erro MAX_SAVED_GAMES)
 - [ ] T062 [US2] Validar User Story 2 conforme Acceptance Scenarios (4 cenários: salvar com confirmação, listar partidas, carregar com estado restaurado, erro ao carregar)
 
 **Estimativa Total Fase 4 (US2)**: ~12 horas
