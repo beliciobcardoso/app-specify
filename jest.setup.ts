@@ -1,6 +1,9 @@
 import '@testing-library/jest-dom';
 import { randomUUID } from 'crypto';
 
+// Mock do Better-Auth para testes de integração
+import './tests/setup/better-auth-mock';
+
 type GameRecord = {
   id: string;
   mode: string;

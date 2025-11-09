@@ -80,7 +80,7 @@ export class PrismaGameRepository implements IGameRepository {
       savedById: game.savedById ?? null,
       savedAt: game.savedAt ?? null,
       title: game.title ?? null,
-      creatorId: null, // Será definido apenas quando houver usuário autenticado
+      creatorId: game.savedById ?? (game.player1.id !== 'player1' ? game.player1.id : null),
       createdAt: game.createdAt,
       updatedAt: game.updatedAt,
     };
