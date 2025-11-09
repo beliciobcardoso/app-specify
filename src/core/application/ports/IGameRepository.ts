@@ -45,4 +45,14 @@ export interface IGameRepository {
    * Conta total de jogos por usuário
    */
   countByUserId(userId: string): Promise<number>;
+
+  /**
+   * Conta partidas salvas em andamento por usuário
+   */
+  countSavedGamesByUserId(userId: string): Promise<number>;
+
+  /**
+   * Busca partidas salvas por usuário
+   */
+  findSavedGamesByUserId(userId: string): Promise<Game[]>;
 }

@@ -20,8 +20,8 @@ export class PrismaUserRepository implements IUserRepository {
       id: user.id,
       name: user.name || 'Usuário',
       email: user.email,
-      image: user.image,
-      emailVerified: !!user.emailVerified,
+      image: user.image ?? undefined,
+      emailVerified: Boolean(user.emailVerified),
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };
@@ -40,8 +40,8 @@ export class PrismaUserRepository implements IUserRepository {
       id: user.id,
       name: user.name || 'Usuário',
       email: user.email,
-      image: user.image,
-      emailVerified: !!user.emailVerified,
+      image: user.image ?? undefined,
+      emailVerified: Boolean(user.emailVerified),
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };

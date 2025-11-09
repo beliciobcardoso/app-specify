@@ -1,0 +1,26 @@
+# Dependencias e caches
+node_modules/
+.pnpm-store/
+.yarn/
+
+# Build outputs
+.next/
+dist/
+build/
+coverage/
+
+# Configs sensiveis
+.env
+.env.*
+Dockerfile*
+docker-compose*.yml
+
+# Controle de versao
+.git/
+.gitignore
+
+# Logs e temporarios
+*.log
+logs/
+*.tmp
+*.swp

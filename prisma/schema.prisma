@@ -81,6 +81,7 @@ model User {
   
   // Relacionamentos do Jogo
   gamesCreated Game[]
+  savedGames   Game[]   @relation("SavedGames")
   gameStats    GameStats[]
   roomMembers  RoomMember[]
 
@@ -135,6 +136,8 @@ model Game {
   // Configurações da partida
   mode        GameMode
   status      GameStatus
+  isSaved     Boolean    @default(false)
+  savedAt     DateTime?
   
   // Estado do jogo
   boardState  Json       // Serialização do tabuleiro e peças
@@ -147,10 +150,15 @@ model Game {
   // Resultado
   result      GameResult?
   winnerId    String?
+  title       String?
   
   // Criador (opcional para jogos locais)
   creator     User?      @relation(fields: [creatorId], references: [id], onDelete: SetNull)
   creatorId   String?
+
+  // Usuário que salvou a partida
+  savedBy     User?      @relation("SavedGames", fields: [savedById], references: [id], onDelete: SetNull)
+  savedById   String?
   
   // Sala associada (para modo online)
   roomId      String?
@@ -166,6 +174,8 @@ model Game {
   @@index([status])
   @@index([mode])
   @@index([roomId])
+  @@index([savedById])
+  @@index([isSaved])
   @@map("games")
 }
 

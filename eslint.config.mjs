@@ -12,7 +12,18 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Custom ignores migrated from .eslintignore
+    "node_modules/**",
+    "dist/**",
+    "coverage/**",
+    "prisma/migrations/**",
   ]),
+  {
+    files: ["*.config.js", "*.config.cjs"],
+    rules: {
+      "@typescript-eslint/no-require-imports": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;

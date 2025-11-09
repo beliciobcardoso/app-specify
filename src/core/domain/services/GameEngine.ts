@@ -270,6 +270,13 @@ export class GameEngine {
   }
 
   /**
+   * Verifica se há capturas obrigatórias disponíveis
+   */
+  hasMandatoryCaptures(board: Board, currentPlayerColor: PieceColor): boolean {
+    return this.captureDetector.hasCaptures(board, currentPlayerColor);
+  }
+
+  /**
    * Processa desistência de um jogador
    */
   forfeit(forfeitingPlayer: PieceColor): WinConditionResult {

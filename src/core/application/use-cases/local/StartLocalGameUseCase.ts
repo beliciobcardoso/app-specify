@@ -36,7 +36,7 @@ export class StartLocalGameUseCase {
    */
   async execute(): Promise<GameStateDTO> {
     // Criar partida local usando factory method
-    const game = Game.createLocalGame(crypto.randomUUID());
+    const game = Game.createLocalGame({ gameId: crypto.randomUUID() });
 
     // Persistir no repositório
     await this.gameRepository.save(game);
@@ -77,8 +77,7 @@ export class StartLocalGameUseCase {
       validMovesDTO.set(key, targets);
     });
 
-    // Verificar se há capturas obrigatórias
-    const hasMandatoryCaptures = validMovesMap.size > 0;
+    const hasMandatoryCaptures = this.gameEngine.hasMandatoryCaptures(board, game.currentTurn);
 
     return {
       gameId: game.id,

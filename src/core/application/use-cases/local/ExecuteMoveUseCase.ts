@@ -154,8 +154,9 @@ export class ExecuteMoveUseCase {
       validMovesDTO.set(key, targets);
     });
 
-    // Verificar se há capturas obrigatórias
-    const hasMandatoryCaptures = validMovesMap.size > 0;
+    const hasMandatoryCaptures = moveResult.canContinueCapturing
+      ? true
+      : this.gameEngine.hasMandatoryCaptures(board, game.currentTurn);
 
     return {
       gameId: game.id,

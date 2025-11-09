@@ -5,6 +5,14 @@ import { GameMode } from '../value-objects/GameMode';
 import { GameStatus, GameResult } from '../value-objects/GameStatus';
 import { PieceColor } from '../value-objects/PieceColor';
 
+const generateGameId = (): string => {
+  if (typeof globalThis.crypto !== 'undefined' && typeof globalThis.crypto.randomUUID === 'function') {
+    return globalThis.crypto.randomUUID();
+  }
+
+  return `game-${Math.random().toString(36).slice(2, 10)}`;
+};
+
 /**
  * Entidade principal representando uma partida de Damas
  */
@@ -20,6 +28,10 @@ export class Game {
     public moveHistory: Move[] = [],
     public result?: GameResult,
     public winnerId?: string,
+    public isSaved: boolean = false,
+    public savedById?: string,
+    public savedAt?: Date,
+    public title?: string,
     public readonly createdAt: Date = new Date(),
     public updatedAt: Date = new Date()
   ) {
@@ -44,19 +56,34 @@ export class Game {
   /**
    * Cria novo jogo no modo local
    */
-  static createLocalGame(gameId: string): Game {
+  static createLocalGame(
+    creatorOrOptions?: string | { creatorId?: string; gameId?: string }
+  ): Game {
+    const options =
+      typeof creatorOrOptions === 'string'
+        ? { creatorId: creatorOrOptions }
+        : creatorOrOptions ?? {};
+
     const board = Board.createInitialBoard();
-    const player1 = Player.createLocalHuman('player1', PieceColor.LIGHT, 'Jogador 1');
+    const player1Id = options.creatorId ?? 'player1';
+    const player1 = Player.createLocalHuman(player1Id, PieceColor.LIGHT, 'Jogador 1');
     const player2 = Player.createLocalHuman('player2', PieceColor.DARK, 'Jogador 2');
 
     return new Game(
-      gameId,
+      options.gameId ?? generateGameId(),
       GameMode.LOCAL,
       board,
       player1,
       player2,
       PieceColor.LIGHT, // Claras começam
-      GameStatus.IN_PROGRESS
+      GameStatus.IN_PROGRESS,
+      [],
+      undefined,
+      undefined,
+      false,
+      undefined,
+      undefined,
+      undefined
     );
   }
 
@@ -90,7 +117,39 @@ export class Game {
     this.status = GameStatus.FINISHED;
     this.result = result;
     this.winnerId = winnerId;
+    this.isSaved = false;
+    this.savedById = undefined;
+    this.savedAt = undefined;
     this.updatedAt = new Date();
+  }
+
+  /**
+   * Marca jogo como salvo por um usuário
+   */
+  markAsSaved(userId: string, title?: string): void {
+    this.isSaved = true;
+    this.savedById = userId;
+    this.savedAt = new Date();
+    this.title = title;
+    this.updatedAt = new Date();
+  }
+
+  /**
+   * Remove status de jogo salvo
+   */
+  clearSavedStatus(): void {
+    this.isSaved = false;
+    this.savedById = undefined;
+    this.savedAt = undefined;
+    this.title = undefined;
+    this.updatedAt = new Date();
+  }
+
+  /**
+   * Verifica se usuário tem acesso ao jogo salvo
+   */
+  canBeManagedBy(userId: string): boolean {
+    return this.savedById === userId || this.player1.id === userId || this.player2.id === userId;
   }
 
   /**
@@ -137,6 +196,10 @@ export class Game {
     moveHistory: Array<ReturnType<Move['toJSON']>>;
     result?: GameResult;
     winnerId?: string;
+    isSaved: boolean;
+    savedById?: string;
+    savedAt?: string;
+    title?: string;
     createdAt: string;
     updatedAt: string;
   } {
@@ -151,6 +214,10 @@ export class Game {
       moveHistory: this.moveHistory.map((move) => move.toJSON()),
       result: this.result,
       winnerId: this.winnerId,
+      isSaved: this.isSaved,
+      savedById: this.savedById,
+      savedAt: this.savedAt?.toISOString(),
+      title: this.title,
       createdAt: this.createdAt.toISOString(),
       updatedAt: this.updatedAt.toISOString(),
     };
@@ -170,6 +237,10 @@ export class Game {
     moveHistory: Array<ReturnType<Move['toJSON']>>;
     result?: GameResult;
     winnerId?: string;
+    isSaved?: boolean;
+    savedById?: string;
+    savedAt?: string;
+    title?: string;
     createdAt: string;
     updatedAt: string;
   }): Game {
@@ -184,6 +255,10 @@ export class Game {
       json.moveHistory.map((move) => Move.fromJSON(move)),
       json.result,
       json.winnerId,
+  json.isSaved ?? false,
+      json.savedById,
+      json.savedAt ? new Date(json.savedAt) : undefined,
+      json.title,
       new Date(json.createdAt),
       new Date(json.updatedAt)
     );

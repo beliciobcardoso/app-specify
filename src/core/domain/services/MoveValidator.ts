@@ -47,15 +47,7 @@ export class MoveValidator {
     to: Position,
     playerColor: PieceColor
   ): MoveValidationResult {
-    // Validação 1: Casa de destino deve ser escura (FR-002)
-    if (!to.isDarkSquare()) {
-      return {
-        isValid: false,
-        error: 'Destino deve ser uma casa escura',
-      };
-    }
-
-    // Validação 2: Deve haver peça na origem
+    // Validação 1: Deve haver peça na origem
     const piece = board.getPieceAt(from);
     if (!piece) {
       return {
@@ -64,7 +56,7 @@ export class MoveValidator {
       };
     }
 
-    // Validação 3: Peça deve pertencer ao jogador atual
+    // Validação 2: Peça deve pertencer ao jogador atual
     if (piece.color !== playerColor) {
       return {
         isValid: false,
@@ -72,7 +64,7 @@ export class MoveValidator {
       };
     }
 
-    // Validação 4: Casa de destino deve estar vazia
+    // Validação 3: Casa de destino deve estar vazia
     if (board.getPieceAt(to) !== null) {
       return {
         isValid: false,
@@ -80,11 +72,23 @@ export class MoveValidator {
       };
     }
 
-    // Validação 5: Movimento deve ser diagonal
+    // Validação 4: Movimento deve ser diagonal (FR-001)
     if (!this.isDiagonalMove(from, to)) {
+      const needsDarkMessage = !to.isDarkSquare();
+      const baseMessage = 'Movimento deve ser diagonal';
       return {
         isValid: false,
-        error: 'Movimento deve ser diagonal',
+        error: needsDarkMessage
+          ? `${baseMessage} e destino deve ser uma casa escura`
+          : baseMessage,
+      };
+    }
+
+    // Validação 5: Casa de destino deve ser escura (FR-002)
+    if (!to.isDarkSquare()) {
+      return {
+        isValid: false,
+        error: 'Destino deve ser uma casa escura',
       };
     }
 

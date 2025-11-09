@@ -1,9 +1,59 @@
 import { PrismaClient } from '@prisma/client';
+import type { Prisma } from '@prisma/client';
 import { IGameRepository } from '@/core/application/ports/IGameRepository';
 import { Game } from '@/core/domain/entities/Game';
 import { GameMode } from '@/core/domain/value-objects/GameMode';
 import { GameStatus, GameResult } from '@/core/domain/value-objects/GameStatus';
 import { PieceColor } from '@/core/domain/value-objects/PieceColor';
+
+const mapDomainResultToPrisma = (result?: GameResult): 'WIN' | 'DRAW' | 'ABANDONED' | null => {
+  if (!result) {
+    return null;
+  }
+
+  if (result === GameResult.DRAW) {
+    return 'DRAW';
+  }
+
+  if (result === GameResult.FORFEIT) {
+    return 'ABANDONED';
+  }
+
+  return 'WIN';
+};
+
+const mapPrismaResultToDomain = (
+  prismaResult: 'WIN' | 'DRAW' | 'ABANDONED' | null,
+  winnerId: string | null,
+  player1Id: string,
+  player2Id: string
+): GameResult | undefined => {
+  if (!prismaResult) {
+    return undefined;
+  }
+
+  if (prismaResult === 'DRAW') {
+    return GameResult.DRAW;
+  }
+
+  if (prismaResult === 'ABANDONED') {
+    return GameResult.FORFEIT;
+  }
+
+  if (!winnerId) {
+    return GameResult.PLAYER1_WIN;
+  }
+
+  if (winnerId === player1Id) {
+    return GameResult.PLAYER1_WIN;
+  }
+
+  if (winnerId === player2Id) {
+    return GameResult.PLAYER2_WIN;
+  }
+
+  return GameResult.PLAYER1_WIN;
+};
 
 /**
  * Implementação Prisma do repositório de jogos
@@ -12,38 +62,47 @@ export class PrismaGameRepository implements IGameRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
   async save(game: Game): Promise<void> {
-    const gameData = game.toJSON();
+    const boardState = JSON.parse(JSON.stringify(game.board.toJSON())) as Prisma.InputJsonValue;
+    const lightPlayer = JSON.parse(JSON.stringify(game.player1.toJSON())) as Prisma.InputJsonValue;
+    const darkPlayer = JSON.parse(JSON.stringify(game.player2.toJSON())) as Prisma.InputJsonValue;
 
-    // Converter GameResult enum domain para Prisma enum
-    const prismaResult = gameData.result 
-      ? (gameData.result.includes('WIN') ? 'WIN' : gameData.result === 'DRAW' ? 'DRAW' : 'ABANDONED')
-      : null;
+    const createData: Prisma.GameCreateInput & Record<string, unknown> = {
+      id: game.id,
+      mode: game.mode,
+      status: game.status,
+      result: mapDomainResultToPrisma(game.result),
+      boardState,
+      currentTurn: game.currentTurn,
+      lightPlayer,
+      darkPlayer,
+      winnerId: game.winnerId ?? null,
+      isSaved: game.isSaved,
+      savedById: game.savedById ?? null,
+      savedAt: game.savedAt ?? null,
+      title: game.title ?? null,
+      creatorId: game.player1.id ?? game.id,
+      createdAt: game.createdAt,
+      updatedAt: game.updatedAt,
+    };
+
+    const updateData: Prisma.GameUpdateInput & Record<string, unknown> = {
+      status: game.status,
+      result: mapDomainResultToPrisma(game.result),
+      boardState,
+      currentTurn: game.currentTurn,
+      winnerId: game.winnerId ?? null,
+      isSaved: game.isSaved,
+      savedById: game.savedById ?? null,
+      savedAt: game.savedAt ?? null,
+      title: game.title ?? null,
+      creatorId: game.player1.id ?? game.id,
+      updatedAt: game.updatedAt,
+    };
 
     await this.prisma.game.upsert({
       where: { id: game.id },
-      create: {
-        id: game.id,
-        mode: gameData.mode,
-        status: gameData.status,
-        result: prismaResult as 'WIN' | 'DRAW' | 'ABANDONED' | null,
-        boardState: gameData.board,
-        currentTurn: gameData.currentTurn,
-        lightPlayer: JSON.parse(JSON.stringify(gameData.player1)),
-        darkPlayer: JSON.parse(JSON.stringify(gameData.player2)),
-        winnerId: gameData.winnerId ?? null,
-        roomId: null,
-        duration: null,
-        createdAt: gameData.createdAt,
-        updatedAt: gameData.updatedAt,
-      },
-      update: {
-        status: gameData.status,
-        result: prismaResult as 'WIN' | 'DRAW' | 'ABANDONED' | null,
-        boardState: gameData.board,
-        currentTurn: gameData.currentTurn,
-        winnerId: gameData.winnerId ?? null,
-        updatedAt: gameData.updatedAt,
-      },
+      create: createData,
+      update: updateData,
     });
   }
 
@@ -56,23 +115,41 @@ export class PrismaGameRepository implements IGameRepository {
       return null;
     }
 
-    const lightPlayer = gameRecord.lightPlayer as unknown as ReturnType<Game['toJSON']>['player1'];
-    const darkPlayer = gameRecord.darkPlayer as unknown as ReturnType<Game['toJSON']>['player2'];
+    type PersistedGameRecord = typeof gameRecord & {
+      isSaved?: boolean;
+      savedById?: string | null;
+      savedAt?: Date | null;
+      title?: string | null;
+    };
+
+    const record = gameRecord as PersistedGameRecord;
+
+    const lightPlayer = record.lightPlayer as unknown as ReturnType<Game['toJSON']>['player1'];
+    const darkPlayer = record.darkPlayer as unknown as ReturnType<Game['toJSON']>['player2'];
 
     // Converter Prisma record para Game entity
     return Game.fromJSON({
-      id: gameRecord.id,
-      mode: gameRecord.mode as unknown as GameMode,
-      board: gameRecord.boardState as ReturnType<Game['toJSON']>['board'],
+      id: record.id,
+      mode: record.mode as unknown as GameMode,
+      board: record.boardState as ReturnType<Game['toJSON']>['board'],
       player1: lightPlayer,
       player2: darkPlayer,
-      currentTurn: gameRecord.currentTurn as unknown as PieceColor,
-      status: gameRecord.status as unknown as GameStatus,
+      currentTurn: record.currentTurn as unknown as PieceColor,
+      status: record.status as unknown as GameStatus,
       moveHistory: [], // Carregar depois via IMoveRepository se necessário
-      result: gameRecord.result as unknown as GameResult | undefined,
-      winnerId: gameRecord.winnerId ?? undefined,
-      createdAt: gameRecord.createdAt.toISOString(),
-      updatedAt: gameRecord.updatedAt.toISOString(),
+      result: mapPrismaResultToDomain(
+        record.result as 'WIN' | 'DRAW' | 'ABANDONED' | null,
+        record.winnerId ?? null,
+        lightPlayer.id,
+        darkPlayer.id
+      ),
+      winnerId: record.winnerId ?? undefined,
+      isSaved: record.isSaved ?? false,
+      savedById: record.savedById ?? undefined,
+      savedAt: record.savedAt ? record.savedAt.toISOString() : undefined,
+      title: record.title ?? undefined,
+      createdAt: record.createdAt.toISOString(),
+      updatedAt: record.updatedAt.toISOString(),
     });
   }
 
@@ -152,5 +229,39 @@ export class PrismaGameRepository implements IGameRepository {
         creatorId: userId,
       },
     });
+  }
+
+  async countSavedGamesByUserId(userId: string): Promise<number> {
+    const where: Prisma.GameWhereInput & Record<string, unknown> = {
+      savedById: userId,
+      isSaved: true,
+      status: 'IN_PROGRESS',
+    };
+
+    return this.prisma.game.count({ where });
+  }
+
+  async findSavedGamesByUserId(userId: string): Promise<Game[]> {
+    const where: Prisma.GameWhereInput & Record<string, unknown> = {
+      savedById: userId,
+      isSaved: true,
+    };
+
+    const orderBy: Array<Prisma.GameOrderByWithRelationInput & Record<string, unknown>> = [
+      { savedAt: 'desc' },
+      { updatedAt: 'desc' },
+    ];
+
+    const records = await this.prisma.game.findMany({
+      where,
+      orderBy,
+    });
+
+    return Promise.all(
+      records.map(async (record) => {
+        const game = await this.findById(record.id);
+        return game!;
+      })
+    );
   }
 }
