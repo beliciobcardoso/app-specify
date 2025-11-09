@@ -8,8 +8,27 @@
  * - Error handling
  */
 
-import { executeMove, startLocalGame } from '@/app/_actions/game-actions';
+import { executeMove, saveGame, startLocalGame } from '@/app/_actions/game-actions';
 import { PieceColor } from '@/core/domain/value-objects/PieceColor';
+import { Game } from '@/core/domain/entities/Game';
+import { PrismaGameRepository } from '@/infrastructure/database/repositories/PrismaGameRepository';
+import { PrismaClient } from '@prisma/client';
+import { randomUUID } from 'crypto';
+
+const createCuid = (suffix: string): string => `cjld2cjxh0000qzrmn831i7${suffix}`;
+
+const withPrisma = async <T>(
+  handler: (context: { prisma: PrismaClient; repository: PrismaGameRepository }) => Promise<T>
+): Promise<T> => {
+  const prisma = new PrismaClient();
+  const repository = new PrismaGameRepository(prisma);
+
+  try {
+    return await handler({ prisma, repository });
+  } finally {
+    await prisma.$disconnect();
+  }
+};
 
 describe('Server Actions - Integration Tests', () => {
   describe('startLocalGame', () => {
@@ -440,6 +459,111 @@ describe('Server Actions - Integration Tests', () => {
       // Piece count should remain same for simple move
       expect(moveResult.data.pieces.length).toBe(initialPieceCount);
       expect(moveResult.data.gameId).toBe(gameId);
+    });
+  });
+
+  describe('saveGame', () => {
+    it('should save an in-progress game successfully', async () => {
+      const userId = createCuid('rn');
+      const startResult = await startLocalGame();
+
+      expect(startResult.success).toBe(true);
+      if (!startResult.success) return;
+
+      const result = await saveGame({
+        gameId: startResult.data.gameId,
+        userId,
+        title: 'Partida salva',
+      });
+
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+      expect(result.data.gameId).toBe(startResult.data.gameId);
+      expect(result.data.title).toBe('Partida salva');
+      expect(result.data.savedAt).toBeInstanceOf(Date);
+    });
+
+    it('should reject invalid payload via Zod validation', async () => {
+      const result = await saveGame({
+        gameId: 'invalid',
+        userId: 'not-a-cuid',
+      });
+
+      expect(result.success).toBe(false);
+      if (result.success) return;
+      expect(result.error).toContain('userId');
+    });
+
+    it('should not save when game does not exist', async () => {
+      const userId = createCuid('ro');
+
+      const result = await saveGame({
+        gameId: randomUUID(),
+        userId,
+      });
+
+      expect(result.success).toBe(false);
+      if (result.success) return;
+      expect(result.error).toContain('Partida não encontrada');
+    });
+
+    it('should reject when another user already saved the game', async () => {
+      const ownerId = createCuid('rp');
+      const otherId = createCuid('rq');
+      const startResult = await startLocalGame();
+
+      expect(startResult.success).toBe(true);
+      if (!startResult.success) return;
+
+      const firstSave = await saveGame({
+        gameId: startResult.data.gameId,
+        userId: ownerId,
+        title: 'Primeiro título',
+      });
+
+      expect(firstSave.success).toBe(true);
+      if (!firstSave.success) return;
+
+      const result = await saveGame({
+        gameId: startResult.data.gameId,
+        userId: otherId,
+        title: 'Tentativa não autorizada',
+      });
+
+      expect(result.success).toBe(false);
+      if (result.success) return;
+      expect(result.error).toContain('permissão');
+    });
+
+    it('should enforce the limit of 50 saved games per user', async () => {
+      const userId = createCuid('rr');
+      const targetGame = Game.createLocalGame({ gameId: randomUUID(), creatorId: userId });
+
+      await withPrisma(async ({ prisma, repository }) => {
+        await prisma.game.deleteMany({ where: { creatorId: userId } });
+
+        for (let index = 0; index < 50; index += 1) {
+          const game = Game.createLocalGame({ gameId: randomUUID(), creatorId: userId });
+          game.markAsSaved(userId, `Partida ${index + 1}`);
+          await repository.save(game);
+        }
+
+        await repository.save(targetGame);
+      });
+
+      const result = await saveGame({
+        gameId: targetGame.id,
+        userId,
+        title: 'Limite excedido',
+      });
+
+      expect(result.success).toBe(false);
+      if (result.success) return;
+      expect(result.error).toContain('limite');
+
+      await withPrisma(async ({ prisma }) => {
+        await prisma.game.deleteMany({ where: { creatorId: userId } });
+      });
     });
   });
 });
