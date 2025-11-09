@@ -58,10 +58,10 @@ export class PrismaUserRepository implements IUserRepository {
 
     return {
       gamesPlayed: stats.totalGames,
-      wins: stats.wins,
-      losses: stats.losses,
-      draws: stats.draws,
-      winRate: stats.totalGames > 0 ? (stats.wins / stats.totalGames) * 100 : 0,
+      wins: stats.totalWins,
+      losses: stats.totalLosses,
+      draws: stats.totalDraws,
+      winRate: stats.totalGames > 0 ? (stats.totalWins / stats.totalGames) * 100 : 0,
     };
   }
 
@@ -76,15 +76,15 @@ export class PrismaUserRepository implements IUserRepository {
       create: {
         userId,
         totalGames: 1,
-        wins: won ? 1 : 0,
-        losses: !won && !draw ? 1 : 0,
-        draws: draw ? 1 : 0,
+        totalWins: won ? 1 : 0,
+        totalLosses: !won && !draw ? 1 : 0,
+        totalDraws: draw ? 1 : 0,
       },
       update: {
         totalGames: { increment: 1 },
-        wins: won ? { increment: 1 } : undefined,
-        losses: !won && !draw ? { increment: 1 } : undefined,
-        draws: draw ? { increment: 1 } : undefined,
+        totalWins: won ? { increment: 1 } : undefined,
+        totalLosses: !won && !draw ? { increment: 1 } : undefined,
+        totalDraws: draw ? { increment: 1 } : undefined,
       },
     });
   }

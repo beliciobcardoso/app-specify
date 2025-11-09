@@ -4,8 +4,6 @@ import { Game } from '@/core/domain/entities/Game';
 import { GameMode } from '@/core/domain/value-objects/GameMode';
 import { GameStatus, GameResult } from '@/core/domain/value-objects/GameStatus';
 import { PieceColor } from '@/core/domain/value-objects/PieceColor';
-import { PlayerType } from '@/core/domain/value-objects/PlayerType';
-import { BotDifficulty } from '@/core/domain/value-objects/BotDifficulty';
 
 /**
  * Implementação Prisma do repositório de jogos
@@ -16,31 +14,35 @@ export class PrismaGameRepository implements IGameRepository {
   async save(game: Game): Promise<void> {
     const gameData = game.toJSON();
 
+    // Converter GameResult enum domain para Prisma enum
+    const prismaResult = gameData.result 
+      ? (gameData.result.includes('WIN') ? 'WIN' : gameData.result === 'DRAW' ? 'DRAW' : 'ABANDONED')
+      : null;
+
     await this.prisma.game.upsert({
       where: { id: game.id },
       create: {
         id: game.id,
         mode: gameData.mode,
         status: gameData.status,
-        result: gameData.result,
+        result: prismaResult as 'WIN' | 'DRAW' | 'ABANDONED' | null,
         boardState: gameData.board,
         currentTurn: gameData.currentTurn,
-        player1Id: gameData.player1.id === 'player1' ? null : gameData.player1.id,
-        player1Type: gameData.player1.type,
-        player2Id: gameData.player2.id === 'player2' ? null : gameData.player2.id,
-        player2Type: gameData.player2.type,
-        botDifficulty: game.mode === GameMode.BOT 
-          ? (game.player1.botDifficulty || game.player2.botDifficulty)
-          : null,
-        isSaved: game.mode !== GameMode.LOCAL, // Só salva online/bot por padrão
+        lightPlayer: JSON.parse(JSON.stringify(gameData.player1)),
+        darkPlayer: JSON.parse(JSON.stringify(gameData.player2)),
+        winnerId: gameData.winnerId ?? null,
+        creatorId: gameData.player1.id === 'player1' ? 'local-game' : gameData.player1.id,
+        roomId: null,
+        duration: null,
         createdAt: gameData.createdAt,
         updatedAt: gameData.updatedAt,
       },
       update: {
         status: gameData.status,
-        result: gameData.result,
+        result: prismaResult as 'WIN' | 'DRAW' | 'ABANDONED' | null,
         boardState: gameData.board,
         currentTurn: gameData.currentTurn,
+        winnerId: gameData.winnerId ?? null,
         updatedAt: gameData.updatedAt,
       },
     });
@@ -55,30 +57,21 @@ export class PrismaGameRepository implements IGameRepository {
       return null;
     }
 
+    const lightPlayer = gameRecord.lightPlayer as unknown as ReturnType<Game['toJSON']>['player1'];
+    const darkPlayer = gameRecord.darkPlayer as unknown as ReturnType<Game['toJSON']>['player2'];
+
     // Converter Prisma record para Game entity
     return Game.fromJSON({
       id: gameRecord.id,
       mode: gameRecord.mode as unknown as GameMode,
       board: gameRecord.boardState as ReturnType<Game['toJSON']>['board'],
-      player1: {
-        id: gameRecord.player1Id || 'player1',
-        type: gameRecord.player1Type as unknown as PlayerType,
-        color: PieceColor.LIGHT,
-        name: 'Jogador 1',
-        botDifficulty: gameRecord.botDifficulty as unknown as BotDifficulty | undefined,
-      },
-      player2: {
-        id: gameRecord.player2Id || 'player2',
-        type: gameRecord.player2Type as unknown as PlayerType,
-        color: PieceColor.DARK,
-        name: 'Jogador 2',
-        botDifficulty: gameRecord.botDifficulty as unknown as BotDifficulty | undefined,
-      },
+      player1: lightPlayer,
+      player2: darkPlayer,
       currentTurn: gameRecord.currentTurn as unknown as PieceColor,
       status: gameRecord.status as unknown as GameStatus,
       moveHistory: [], // Carregar depois via IMoveRepository se necessário
       result: gameRecord.result as unknown as GameResult | undefined,
-      winnerId: gameRecord.player1Id || undefined,
+      winnerId: gameRecord.winnerId ?? undefined,
       createdAt: gameRecord.createdAt.toISOString(),
       updatedAt: gameRecord.updatedAt.toISOString(),
     });
@@ -87,7 +80,7 @@ export class PrismaGameRepository implements IGameRepository {
   async findByUserId(userId: string, limit = 50): Promise<Game[]> {
     const gameRecords = await this.prisma.game.findMany({
       where: {
-        OR: [{ player1Id: userId }, { player2Id: userId }],
+        creatorId: userId,
       },
       orderBy: { updatedAt: 'desc' },
       take: limit,
@@ -134,7 +127,7 @@ export class PrismaGameRepository implements IGameRepository {
   async findActiveGamesByUserId(userId: string): Promise<Game[]> {
     const gameRecords = await this.prisma.game.findMany({
       where: {
-        OR: [{ player1Id: userId }, { player2Id: userId }],
+        creatorId: userId,
         status: GameStatus.IN_PROGRESS,
       },
       orderBy: { updatedAt: 'desc' },
@@ -149,7 +142,7 @@ export class PrismaGameRepository implements IGameRepository {
   }
 
   async delete(gameId: string): Promise<void> {
-    await this.prisma.game.delete({
+    await this.prisma.game.deleteMany({
       where: { id: gameId },
     });
   }
@@ -157,9 +150,7 @@ export class PrismaGameRepository implements IGameRepository {
   async countByUserId(userId: string): Promise<number> {
     return this.prisma.game.count({
       where: {
-        OR: [{ player1Id: userId }, { player2Id: userId }],
-        status: GameStatus.IN_PROGRESS,
-        isSaved: true,
+        creatorId: userId,
       },
     });
   }

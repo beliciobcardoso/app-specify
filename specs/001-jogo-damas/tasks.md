@@ -21,14 +21,14 @@
 
 **Propósito**: Inicialização do projeto e estrutura básica
 
-- [ ] T001 Criar estrutura de diretórios conforme plan.md (src/app, src/core, src/infrastructure, src/shared, tests)
-- [ ] T002 Inicializar projeto Next.js 16+ com TypeScript strict mode e configurar `tsconfig.json`
-- [ ] T003 [P] Instalar dependências principais: React 19+, Next.js 16+, Prisma, Better-Auth, Zod, Tailwind CSS
-- [ ] T004 [P] Configurar ESLint e Prettier para TypeScript strict (sem uso de `any`)
-- [ ] T005 [P] Configurar Jest e React Testing Library em `tests/` com setup inicial
-- [ ] T006 Configurar variáveis de ambiente: criar `.env.example` com DATABASE_URL, BETTER_AUTH_SECRET, WEBSOCKET_PORT
-- [ ] T007 [P] Configurar Tailwind CSS em `src/app/globals.css` e `tailwind.config.ts`
-- [ ] T008 [P] Criar README.md do projeto com instruções de setup (referenciar quickstart.md)
+- [X] T001 Criar estrutura de diretórios conforme plan.md (src/app, src/core, src/infrastructure, src/shared, tests)
+- [X] T002 Inicializar projeto Next.js 16+ com TypeScript strict mode e configurar `tsconfig.json`
+- [X] T003 [P] Instalar dependências principais: React 19+, Next.js 16+, Prisma, Better-Auth, Zod, Tailwind CSS
+- [X] T004 [P] Configurar ESLint e Prettier para TypeScript strict (sem uso de `any`)
+- [X] T005 [P] Configurar Jest e React Testing Library em `tests/` com setup inicial
+- [X] T006 Configurar variáveis de ambiente: criar `.env.example` com DATABASE_URL, BETTER_AUTH_SECRET, WEBSOCKET_PORT
+- [X] T007 [P] Configurar Tailwind CSS em `src/app/globals.css` e `tailwind.config.ts`
+- [X] T008 [P] Criar README.md do projeto com instruções de setup (referenciar quickstart.md)
 
 **Estimativa Total Fase 1**: ~4 horas
 
@@ -40,26 +40,26 @@
 
 **⚠️ CRÍTICO**: Nenhum trabalho de User Story pode começar até esta fase estar completa
 
-- [ ] T009 Configurar PostgreSQL via Docker: criar `docker-compose.yml` com serviço PostgreSQL
-- [ ] T010 Criar schema Prisma em `src/infrastructure/database/prisma/schema.prisma` baseado em data-model.md (9 models: User, Account, Session, VerificationToken, Game, Move, Room, RoomMember, GameStats)
-- [ ] T011 Executar `prisma migrate dev --name init` para criar primeira migration
-- [ ] T012 [P] Configurar Better-Auth em `src/infrastructure/auth/config.ts` com Prisma adapter
-- [ ] T013 [P] Criar middleware de autenticação em `src/infrastructure/auth/middleware.ts` para Server Components
-- [ ] T014 [P] Definir Value Objects em `src/core/domain/value-objects/`: Position.ts, PieceColor.ts, PieceType.ts, GameMode.ts, GameStatus.ts, PlayerType.ts, BotDifficulty.ts, RoomStatus.ts, RoomRole.ts, ConnectionStatus.ts
-- [ ] T015 [P] Definir entidades core em `src/core/domain/entities/`: Board.ts, Piece.ts, Player.ts, Game.ts, Move.ts, Room.ts
-- [ ] T016 [P] Definir interfaces de repositório em `src/core/application/ports/`: IGameRepository.ts, IUserRepository.ts, IRoomRepository.ts, IMoveRepository.ts, IBotService.ts, IWebSocketService.ts
-- [ ] T017 [P] Implementar PrismaGameRepository em `src/infrastructure/database/repositories/PrismaGameRepository.ts`
-- [ ] T018 [P] Implementar PrismaUserRepository em `src/infrastructure/database/repositories/PrismaUserRepository.ts`
-- [ ] T019 [P] Implementar PrismaRoomRepository em `src/infrastructure/database/repositories/PrismaRoomRepository.ts`
-- [ ] T020 [P] Implementar PrismaMoveRepository em `src/infrastructure/database/repositories/PrismaMoveRepository.ts`
-- [ ] T021 [P] Configurar Zod schemas base em `src/infrastructure/validation/schemas/`: move-schema.ts, room-schema.ts, game-schema.ts
-- [ ] T022 [P] Configurar structured logging em `src/infrastructure/logging/logger.ts` (Winston ou Pino)
-- [ ] T023 [P] Criar log-events.ts em `src/infrastructure/logging/` com eventos auditáveis (login, criação de sala, movimentos, capturas, vitórias, erros, reconexões, timeouts)
-- [ ] T024 [P] Configurar gerenciamento de environment em `src/infrastructure/config/env.ts` com validação type-safe
-- [ ] T025 [P] Criar componentes shared básicos em `src/app/_components/shared/`: Button.tsx, Modal.tsx, Spinner.tsx
-- [ ] T026 [P] Criar layout base em `src/app/layout.tsx` e Header/Footer components
-- [ ] T027 [P] Configurar rotas de autenticação Better-Auth em `src/app/api/auth/`
-- [ ] T028 Criar testes de integração para repositórios Prisma em `tests/integration/`: PrismaGameRepository.test.ts, PrismaUserRepository.test.ts
+- [X] T009 Configurar PostgreSQL via Docker: criar `docker-compose.yml` com serviço PostgreSQL
+- [X] T010 Criar schema Prisma em `src/infrastructure/database/prisma/schema.prisma` baseado em data-model.md (9 models: User, Account, Session, VerificationToken, Game, Move, Room, RoomMember, GameStats)
+- [X] T011 Executar `prisma migrate dev --name init` para criar primeira migration
+- [X] T012 [P] Configurar Better-Auth em `src/infrastructure/auth/config.ts` com Prisma adapter
+- [X] T013 [P] Criar middleware de autenticação em `src/infrastructure/auth/middleware.ts` para Server Components
+- [X] T014 [P] Definir Value Objects em `src/core/domain/value-objects/`: Position.ts, PieceColor.ts, PieceType.ts, GameMode.ts, GameStatus.ts, PlayerType.ts, BotDifficulty.ts, RoomStatus.ts, RoomRole.ts, ConnectionStatus.ts
+- [X] T015 [P] Definir entidades core em `src/core/domain/entities/`: Board.ts, Piece.ts, Player.ts, Game.ts, Move.ts, Room.ts
+- [X] T016 [P] Definir interfaces de repositório em `src/core/application/ports/`: IGameRepository.ts, IUserRepository.ts, IRoomRepository.ts, IMoveRepository.ts, IBotService.ts, IWebSocketService.ts
+- [X] T017 [P] Implementar PrismaGameRepository em `src/infrastructure/database/repositories/PrismaGameRepository.ts`
+- [X] T018 [P] Implementar PrismaUserRepository em `src/infrastructure/database/repositories/PrismaUserRepository.ts`
+- [X] T019 [P] Implementar PrismaRoomRepository em `src/infrastructure/database/repositories/PrismaRoomRepository.ts`
+- [X] T020 [P] Implementar PrismaMoveRepository em `src/infrastructure/database/repositories/PrismaMoveRepository.ts`
+- [X] T021 [P] Configurar Zod schemas base em `src/infrastructure/validation/schemas/`: move-schema.ts, room-schema.ts, game-schema.ts
+- [X] T022 [P] Configurar structured logging em `src/infrastructure/logging/logger.ts` (Winston ou Pino)
+- [X] T023 [P] Criar log-events.ts em `src/infrastructure/logging/` com eventos auditáveis (login, criação de sala, movimentos, capturas, vitórias, erros, reconexões, timeouts)
+- [X] T024 [P] Configurar gerenciamento de environment em `src/infrastructure/config/env.ts` com validação type-safe
+- [X] T025 [P] Criar componentes shared básicos em `src/app/_components/shared/`: Button.tsx, Modal.tsx, Spinner.tsx
+- [X] T026 [P] Criar layout base em `src/app/layout.tsx` e Header/Footer components
+- [X] T027 [P] Configurar rotas de autenticação Better-Auth em `src/app/api/auth/`
+- [X] T028 Criar testes de integração para repositórios Prisma em `tests/integration/`: PrismaGameRepository.test.ts, PrismaUserRepository.test.ts
 
 **Estimativa Total Fase 2**: ~16 horas
 

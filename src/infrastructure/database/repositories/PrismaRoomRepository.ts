@@ -18,14 +18,14 @@ export class PrismaRoomRepository implements IRoomRepository {
         id: room.id,
         code: room.code,
         status: roomData.status as unknown as PrismaRoomStatus,
-        createdById: roomData.members[0]?.userId || '',
-        lastActivityAt: new Date(),
+        isPrivate: false,
+        maxSpectators: 10,
+        allowSpectators: true,
         createdAt: new Date(roomData.createdAt),
         updatedAt: new Date(roomData.updatedAt),
       },
       update: {
         status: roomData.status as unknown as PrismaRoomStatus,
-        lastActivityAt: new Date(),
         updatedAt: new Date(roomData.updatedAt),
       },
     });
@@ -162,7 +162,7 @@ export class PrismaRoomRepository implements IRoomRepository {
         status: 'WAITING',
         members: {
           some: {
-            role: 'PLAYER',
+            role: 'HOST',
           },
         },
       },

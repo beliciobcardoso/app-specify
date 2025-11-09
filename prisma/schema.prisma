@@ -1,1 +1,265 @@
-../src/infrastructure/database/prisma/schema.prisma
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums
+enum GameMode {
+  LOCAL
+  ONLINE
+  BOT
+}
+
+enum GameStatus {
+  IN_PROGRESS
+  FINISHED
+  ABANDONED
+}
+
+enum GameResult {
+  WIN
+  DRAW
+  ABANDONED
+}
+
+enum PieceColor {
+  LIGHT
+  DARK
+}
+
+enum PieceType {
+  COMMON
+  QUEEN
+}
+
+enum PlayerType {
+  LOCAL_HUMAN
+  ONLINE_HUMAN
+  BOT_EASY
+  BOT_MEDIUM
+  BOT_HARD
+}
+
+enum RoomStatus {
+  WAITING
+  IN_GAME
+  FINISHED
+}
+
+enum RoomRole {
+  HOST
+  GUEST
+  SPECTATOR
+}
+
+enum ConnectionStatus {
+  CONNECTED
+  DISCONNECTED
+  RECONNECTING
+}
+
+// Better-Auth Models
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relacionamentos Better-Auth
+  accounts     Account[]
+  sessions     Session[]
+  
+  // Relacionamentos do Jogo
+  gamesCreated Game[]
+  gameStats    GameStats[]
+  roomMembers  RoomMember[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// Game Models
+model Game {
+  id          String     @id @default(cuid())
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  
+  // Configurações da partida
+  mode        GameMode
+  status      GameStatus
+  
+  // Estado do jogo
+  boardState  Json       // Serialização do tabuleiro e peças
+  currentTurn PieceColor
+  
+  // Jogadores (serializado como JSON - Player entity)
+  lightPlayer Json
+  darkPlayer  Json
+  
+  // Resultado
+  result      GameResult?
+  winnerId    String?
+  
+  // Criador
+  creator     User       @relation(fields: [creatorId], references: [id])
+  creatorId   String
+  
+  // Sala associada (para modo online)
+  roomId      String?
+  room        Room?      @relation(fields: [roomId], references: [id])
+  
+  // Relacionamentos
+  moves       Move[]
+  
+  // Metadados
+  duration    Int?       // Duração em segundos
+
+  @@index([creatorId])
+  @@index([status])
+  @@index([mode])
+  @@index([roomId])
+  @@map("games")
+}
+
+model Move {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  
+  // Relacionamento com jogo
+  game      Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  gameId    String
+  
+  // Dados do movimento (Move entity serializada)
+  moveData  Json
+  
+  // Número da jogada (sequencial)
+  moveNumber Int
+  
+  // Jogador que fez o movimento
+  playerColor PieceColor
+  
+  @@index([gameId])
+  @@map("moves")
+}
+
+model Room {
+  id          String       @id @default(cuid())
+  code        String       @unique // Código de 6 caracteres para compartilhar
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  
+  // Status da sala
+  status      RoomStatus
+  
+  // Configurações
+  isPrivate   Boolean      @default(false)
+  maxSpectators Int        @default(10)
+  allowSpectators Boolean  @default(true)
+  
+  // Membros
+  members     RoomMember[]
+  
+  // Jogos
+  games       Game[]
+  
+  @@map("rooms")
+}
+
+model RoomMember {
+  id              String           @id @default(cuid())
+  joinedAt        DateTime         @default(now())
+  
+  // Relacionamentos
+  room            Room             @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  roomId          String
+  
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          String
+  
+  // Papel na sala
+  role            RoomRole
+  
+  // Status de conexão
+  connectionStatus ConnectionStatus @default(CONNECTED)
+  lastSeenAt      DateTime         @default(now())
+  
+  @@unique([roomId, userId])
+  @@index([roomId])
+  @@index([userId])
+  @@map("room_members")
+}
+
+model GameStats {
+  id            String   @id @default(cuid())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relacionamento com usuário
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String   @unique
+  
+  // Estatísticas gerais
+  totalGames    Int      @default(0)
+  totalWins     Int      @default(0)
+  totalLosses   Int      @default(0)
+  totalDraws    Int      @default(0)
+  
+  // Por modo de jogo
+  localGames    Int      @default(0)
+  botGames      Int      @default(0)
+  onlineGames   Int      @default(0)
+  
+  // Conquistas
+  longestWinStreak    Int @default(0)
+  currentWinStreak    Int @default(0)
+  
+  @@map("game_stats")
+}

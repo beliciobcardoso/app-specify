@@ -1,7 +1,6 @@
-import { PrismaClient, PieceColor as PrismaPieceColor, Prisma } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { IMoveRepository } from '@/core/application/ports/IMoveRepository';
 import { Move } from '@/core/domain/entities/Move';
-import { PieceColor } from '@/core/domain/value-objects/PieceColor';
 
 /**
  * Implementação Prisma do repositório de movimentos
@@ -18,14 +17,8 @@ export class PrismaMoveRepository implements IMoveRepository {
         id: move.id,
         gameId,
         moveNumber: existingMoves + 1,
-        pieceColor: moveData.pieceColor as unknown as PrismaPieceColor,
-        fromPosition: moveData.from,
-        toPosition: moveData.to,
-        capturedPieces: moveData.capturedPositions.length > 0 
-          ? (moveData.capturedPositions as unknown as Prisma.InputJsonValue) 
-          : Prisma.JsonNull,
-        wasPromoted: moveData.wasPromoted,
-        executedAt: new Date(moveData.timestamp),
+        playerColor: moveData.pieceColor as 'LIGHT' | 'DARK',
+        moveData: JSON.parse(JSON.stringify(moveData)),
       },
     });
   }
@@ -36,17 +29,10 @@ export class PrismaMoveRepository implements IMoveRepository {
       orderBy: { moveNumber: 'asc' },
     });
 
-    return moveRecords.map((record) =>
-      Move.fromJSON({
-        id: record.id,
-        from: record.fromPosition as { row: number; col: number },
-        to: record.toPosition as { row: number; col: number },
-        pieceColor: record.pieceColor as unknown as PieceColor,
-        capturedPositions: (record.capturedPieces as Array<{ row: number; col: number }>) || [],
-        wasPromoted: record.wasPromoted,
-        timestamp: record.executedAt.toISOString(),
-      })
-    );
+    return moveRecords.map((record) => {
+      const data = record.moveData as ReturnType<Move['toJSON']>;
+      return Move.fromJSON(data);
+    });
   }
 
   async findLastMoves(gameId: string, limit: number): Promise<Move[]> {
@@ -58,17 +44,10 @@ export class PrismaMoveRepository implements IMoveRepository {
 
     return moveRecords
       .reverse()
-      .map((record) =>
-        Move.fromJSON({
-          id: record.id,
-          from: record.fromPosition as { row: number; col: number },
-          to: record.toPosition as { row: number; col: number },
-          pieceColor: record.pieceColor as unknown as PieceColor,
-          capturedPositions: (record.capturedPieces as Array<{ row: number; col: number }>) || [],
-          wasPromoted: record.wasPromoted,
-          timestamp: record.executedAt.toISOString(),
-        })
-      );
+      .map((record) => {
+        const data = record.moveData as ReturnType<Move['toJSON']>;
+        return Move.fromJSON(data);
+      });
   }
 
   async countByGameId(gameId: string): Promise<number> {
