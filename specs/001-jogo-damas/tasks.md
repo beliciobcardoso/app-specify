@@ -125,25 +125,25 @@
 
 ### Implementação Application Layer
 
-- [ ] T050 [P] [US2] Criar DTOs em `src/core/application/dtos/`: SaveGameDTO.ts, LoadGameDTO.ts, SavedGameListDTO.ts
-- [ ] T051 [US2] Implementar SaveGameUseCase em `src/core/application/use-cases/persistence/SaveGameUseCase.ts` (verificar autenticação Better-Auth, validar limite de 50 partidas em andamento por usuário conforme data-model.md, persistir estado via IGameRepository, logar ação)
-- [ ] T052 [US2] Implementar LoadGameUseCase em `src/core/application/use-cases/persistence/LoadGameUseCase.ts` (verificar autenticação, carregar partida via IGameRepository, restaurar estado completo, logar ação)
-- [ ] T053 [US2] Implementar DeleteGameHistoryUseCase em `src/core/application/use-cases/persistence/DeleteGameHistoryUseCase.ts` (verificar autorização - usuário só pode deletar próprias partidas, deletar via IGameRepository, logar ação)
+- [X] T050 [P] [US2] Criar DTOs em `src/core/application/dtos/`: SaveGameDTO.ts, LoadGameDTO.ts, SavedGameListDTO.ts
+- [X] T051 [US2] Implementar SaveGameUseCase em `src/core/application/use-cases/persistence/SaveGameUseCase.ts` (verificar autenticação Better-Auth, validar limite de 50 partidas em andamento por usuário conforme data-model.md, persistir estado via IGameRepository, logar ação)
+- [X] T052 [US2] Implementar LoadGameUseCase em `src/core/application/use-cases/persistence/LoadGameUseCase.ts` (verificar autenticação, carregar partida via IGameRepository, restaurar estado completo, logar ação)
+- [X] T053 [US2] Implementar DeleteGameHistoryUseCase em `src/core/application/use-cases/persistence/DeleteGameHistoryUseCase.ts` (verificar autorização - usuário só pode deletar próprias partidas, deletar via IGameRepository, logar ação)
 
 ### Implementação Presentation Layer
 
-- [ ] T054 [US2] Implementar Server Action saveGame em `src/app/_actions/game-actions.ts` (validar entrada com SaveGameSchema Zod, chamar SaveGameUseCase, retornar sucesso ou erro MAX_SAVED_GAMES)
-- [ ] T055 [US2] Implementar Server Action loadGame em `src/app/_actions/game-actions.ts` (validar LoadGameSchema, chamar LoadGameUseCase, retornar GameStateDTO ou erro)
-- [ ] T056 [US2] Implementar Server Action deleteGameHistory em `src/app/_actions/game-actions.ts` (validar entrada, chamar DeleteGameHistoryUseCase, retornar sucesso ou erro UNAUTHORIZED)
-- [ ] T057 [US2] Criar página de dashboard em `src/app/(auth)/dashboard/page.tsx` (Server Component: listar partidas salvas com data/modo/oponente, botões para carregar/deletar)
-- [ ] T058 [US2] Adicionar botão "Salvar Partida" no GameStatus.tsx (chamar saveGame Server Action, exibir confirmação ou erro)
-- [ ] T059 [US2] Adicionar rota de carregamento em página de jogo local (detectar gameId na URL, carregar estado via loadGame)
+- [X] T054 [US2] Implementar Server Action saveGame em `src/app/_actions/game-actions.ts` (validar entrada com SaveGameSchema Zod, chamar SaveGameUseCase, retornar sucesso ou erro MAX_SAVED_GAMES)
+- [X] T055 [US2] Implementar Server Action loadGame em `src/app/_actions/game-actions.ts` (validar LoadGameSchema, chamar LoadGameUseCase, retornar GameStateDTO ou erro)
+- [X] T056 [US2] Implementar Server Action deleteGameHistory em `src/app/_actions/game-actions.ts` (validar entrada, chamar DeleteGameHistoryUseCase, retornar sucesso ou erro UNAUTHORIZED)
+- [X] T057 [US2] Criar página de dashboard em `src/app/(auth)/dashboard/page.tsx` (Server Component: listar partidas salvas com data/modo/oponente, botões para carregar/deletar)
+- [X] T058 [US2] Adicionar botão "Salvar Partida" no GameStatus.tsx (chamar saveGame Server Action, exibir confirmação ou erro)
+- [X] T059 [US2] Adicionar rota de carregamento em página de jogo local (detectar gameId na URL, carregar estado via loadGame)
 
 ### Testes e Validação
 
 - [X] T060 [P] [US2] Teste unitário para SaveGameUseCase em `tests/unit/core/application/SaveGameUseCase.test.ts` (testar limite de 50 partidas, persistência de estado completo, logging)
 - [X] T061 [P] [US2] Teste de integração para saveGame Server Action em `tests/integration/app/game-actions.test.ts` (testar validação Zod, autenticação Better-Auth, erro MAX_SAVED_GAMES)
-- [ ] T062 [US2] Validar User Story 2 conforme Acceptance Scenarios (4 cenários: salvar com confirmação, listar partidas, carregar com estado restaurado, erro ao carregar)
+- [X] T062 [US2] Validar User Story 2 conforme Acceptance Scenarios (4 cenários: salvar com confirmação, listar partidas, carregar com estado restaurado, erro ao carregar)
 
 **Estimativa Total Fase 4 (US2)**: ~12 horas
 

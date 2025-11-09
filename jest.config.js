@@ -36,7 +36,7 @@ const config = {
 
   // Ignorar node_modules
   transformIgnorePatterns: [
-    'node_modules/(?!(better-auth)/)',
+    'node_modules/(?!(better-auth|jose|@better-auth)/)',
   ],
 };
 

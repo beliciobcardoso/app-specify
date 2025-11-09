@@ -15,7 +15,12 @@ export const auth = betterAuth({
   
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: false, // Simplificar MVP - pode ativar depois
+    requireEmailVerification: false,
+  },
+
+  // Desabilitar email verification completamente
+  emailVerification: {
+    sendOnSignUp: false,
   },
 
   socialProviders: {
@@ -36,7 +41,6 @@ export const auth = betterAuth({
   },
 
   advanced: {
-    generateId: false, // Prisma gera IDs com cuid()
     useSecureCookies: process.env.NODE_ENV === 'production',
   },
 

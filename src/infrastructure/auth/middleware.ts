@@ -1,5 +1,6 @@
 import { auth } from './config';
 import { NextRequest, NextResponse } from 'next/server';
+import type { ReadonlyHeaders } from 'next/dist/server/web/spec-extension/adapters/headers';
 
 /**
  * Middleware de autenticação para proteger rotas
@@ -34,7 +35,7 @@ export async function authMiddleware(request: NextRequest) {
 /**
  * Utilitário para obter sessão em Server Components
  */
-export async function getSession(headers: Headers) {
+export async function getSession(headers: Headers | ReadonlyHeaders) {
   try {
     const session = await auth.api.getSession({ headers });
     return session;
@@ -47,7 +48,7 @@ export async function getSession(headers: Headers) {
  * Utilitário para verificar se usuário está autenticado
  * Lança erro se não autenticado (útil em Server Actions)
  */
-export async function requireAuth(headers: Headers) {
+export async function requireAuth(headers: Headers | ReadonlyHeaders) {
   const session = await getSession(headers);
   
   if (!session) {

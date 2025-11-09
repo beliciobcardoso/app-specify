@@ -34,6 +34,26 @@ interface GameStatusProps {
   onNewGame?: () => void;
 
   /**
+   * Callback para salvar partida
+   */
+  onSaveGame?: () => void;
+
+  /**
+   * Indica se o processo de salvar está em andamento
+   */
+  isSavingGame?: boolean;
+
+  /**
+   * Mensagem de sucesso exibida após salvar
+   */
+  saveSuccessMessage?: string | null;
+
+  /**
+   * Mensagem de erro exibida após tentativa de salvar
+   */
+  saveErrorMessage?: string | null;
+
+  /**
    * Indica se há capturas obrigatórias
    */
   hasMandatoryCaptures?: boolean;
@@ -47,6 +67,7 @@ interface GameStatusProps {
  * - Mostrar mensagem de vitória/derrota/empate
  * - Botão de desistência (FR-010)
  * - Botão de novo jogo (quando finalizado)
+ * - Botão de salvar partida (FR-014)
  * - Indicador de capturas obrigatórias (FR-003)
  * 
  * FR-008, FR-009, FR-010: Condições de vitória/empate/desistência
@@ -58,7 +79,11 @@ export function GameStatus({
   currentTurn,
   onForfeit,
   onNewGame,
+  onSaveGame,
+  isSavingGame = false,
   hasMandatoryCaptures = false,
+  saveSuccessMessage = null,
+  saveErrorMessage = null,
 }: GameStatusProps) {
   const isFinished = status === GameStatusEnum.FINISHED;
   const isLightTurn = currentTurn === PieceColor.LIGHT;
@@ -141,6 +166,17 @@ export function GameStatus({
 
       {/* Botões de controle */}
       <div className="flex flex-col gap-3 mt-6">
+        {!isFinished && onSaveGame && (
+          <button
+            type="button"
+            onClick={onSaveGame}
+            disabled={isSavingGame}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isSavingGame ? 'Salvando...' : 'Salvar partida'}
+          </button>
+        )}
+
         {!isFinished && onForfeit && (
           <button
             onClick={onForfeit}
@@ -159,6 +195,21 @@ export function GameStatus({
           </button>
         )}
       </div>
+
+      {(saveSuccessMessage || saveErrorMessage) && (
+        <div className="mt-4 space-y-2">
+          {saveSuccessMessage && (
+            <p className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
+              {saveSuccessMessage}
+            </p>
+          )}
+          {saveErrorMessage && (
+            <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+              {saveErrorMessage}
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 }

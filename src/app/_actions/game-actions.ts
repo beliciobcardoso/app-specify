@@ -2,6 +2,7 @@
 
 import { z } from 'zod';
 import { PrismaClient } from '@prisma/client';
+import { headers } from 'next/headers';
 import { ExecuteMoveUseCase } from '@/core/application/use-cases/local/ExecuteMoveUseCase';
 import { StartLocalGameUseCase } from '@/core/application/use-cases/local/StartLocalGameUseCase';
 import { SaveGameUseCase } from '@/core/application/use-cases/persistence/SaveGameUseCase';
@@ -14,6 +15,7 @@ import { Position } from '@/core/domain/value-objects/Position';
 import { PieceColor } from '@/core/domain/value-objects/PieceColor';
 import { GameStateDTO } from '@/core/application/dtos/GameStateDTO';
 import { SavedGameListDTO } from '@/core/application/dtos/SavedGameListDTO';
+import { requireAuth } from '@/infrastructure/auth/middleware';
 
 /**
  * Schema Zod para validar entrada de executeMove
@@ -195,6 +197,31 @@ export async function deleteGameHistory(input: unknown): Promise<ActionResult<{ 
   } finally {
     await prisma.$disconnect();
   }
+}
+
+export async function saveGameForCurrentUser(
+  input: { gameId: string; title?: string }
+): Promise<ActionResult<SavedGameListDTO>> {
+  const requestHeaders = await headers();
+  const session = await requireAuth(new Headers(requestHeaders));
+
+  return saveGame({
+    gameId: input.gameId,
+    userId: session.user.id,
+    title: input.title,
+  });
+}
+
+export async function loadGameForCurrentUser(
+  input: { gameId: string }
+): Promise<ActionResult<LoadGameResult>> {
+  const requestHeaders = await headers();
+  const session = await requireAuth(new Headers(requestHeaders));
+
+  return loadGame({
+    gameId: input.gameId,
+    userId: session.user.id,
+  });
 }
 
 type ErrorMap = Record<string, string>;

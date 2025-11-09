@@ -1,9 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Board } from '@/app/_components/game/Board';
 import { GameStatus } from '@/app/_components/game/GameStatus';
-import { startLocalGame, executeMove } from '@/app/_actions/game-actions';
+import {
+  startLocalGame,
+  executeMove,
+  saveGameForCurrentUser,
+  loadGameForCurrentUser,
+} from '@/app/_actions/game-actions';
 import { GameStateDTO } from '@/core/application/dtos/GameStateDTO';
 import { Position } from '@/core/domain/value-objects/Position';
 
@@ -25,37 +31,68 @@ export default function LocalGamePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedPosition, setSelectedPosition] = useState<Position | null>(null);
+  const [isSavingGame, setIsSavingGame] = useState(false);
+  const [saveSuccessMessage, setSaveSuccessMessage] = useState<string | null>(null);
+  const [saveErrorMessage, setSaveErrorMessage] = useState<string | null>(null);
+
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const gameIdParam = searchParams.get('gameId');
 
   /**
    * Inicializa novo jogo
    */
-  const initializeGame = async () => {
-    setLoading(true);
-    setError(null);
-
-    const result = await startLocalGame();
-
-    if (result.success) {
-      setGameState(result.data);
-    } else {
-      setError(result.error);
-    }
-
-    setLoading(false);
-  };
-
-  /**
-   * Inicializa jogo ao carregar página
-   */
   useEffect(() => {
-    // Wrapper async para evitar cascading renders
-    const loadGame = async () => {
-      await initializeGame();
+    let isMounted = true;
+
+    const hydrateGame = async () => {
+      setLoading(true);
+      setError(null);
+      setSaveSuccessMessage(null);
+      setSaveErrorMessage(null);
+      setSelectedPosition(null);
+
+      try {
+        if (gameIdParam) {
+          const result = await loadGameForCurrentUser({ gameId: gameIdParam });
+
+          if (!isMounted) {
+            return;
+          }
+
+          if (result.success) {
+            setGameState(result.data.gameState);
+          } else {
+            setGameState(null);
+            setError(result.error);
+          }
+        } else {
+          const result = await startLocalGame();
+
+          if (!isMounted) {
+            return;
+          }
+
+          if (result.success) {
+            setGameState(result.data);
+          } else {
+            setGameState(null);
+            setError(result.error);
+          }
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
     };
-    
-    loadGame();
-     
-  }, []);
+
+    hydrateGame();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [gameIdParam]);
 
   /**
    * Handler de movimento
@@ -65,6 +102,8 @@ export default function LocalGamePage() {
 
     setLoading(true);
     setError(null);
+    setSaveSuccessMessage(null);
+    setSaveErrorMessage(null);
 
     const result = await executeMove({
       gameId: gameState.gameId,
@@ -96,7 +135,9 @@ export default function LocalGamePage() {
   const handleForfeit = () => {
     // TODO: Implementar forfeit
     if (confirm('Deseja realmente desistir?')) {
-      initializeGame();
+      setSaveSuccessMessage(null);
+      setSaveErrorMessage(null);
+      router.replace('/game/local');
     }
   };
 
@@ -104,8 +145,69 @@ export default function LocalGamePage() {
    * Handler de novo jogo
    */
   const handleNewGame = () => {
-    initializeGame();
+    setSaveSuccessMessage(null);
+    setSaveErrorMessage(null);
+    router.replace('/game/local');
   };
+
+  /**
+   * Handler para salvar partida atual
+   */
+  const handleSaveGame = async () => {
+    if (!gameState) {
+      return;
+    }
+
+    const inputTitle = typeof window !== 'undefined'
+      ? window.prompt('Informe um título para identificar a partida (opcional):')
+      : null;
+    const title = inputTitle?.trim() === '' ? undefined : inputTitle?.trim();
+
+    setIsSavingGame(true);
+    setSaveSuccessMessage(null);
+    setSaveErrorMessage(null);
+
+    try {
+      const result = await saveGameForCurrentUser({
+        gameId: gameState.gameId,
+        title: title === '' ? undefined : title,
+      });
+
+      if (result.success) {
+        const savedTitle = result.data.title ? `"${result.data.title}"` : 'atual';
+        setSaveSuccessMessage(`Partida ${savedTitle} salva com sucesso!`);
+
+        if (!gameIdParam || gameIdParam !== result.data.gameId) {
+          router.replace(`/game/local?gameId=${result.data.gameId}`);
+        }
+      } else {
+        setSaveErrorMessage(result.error);
+      }
+    } catch (saveError) {
+      console.error(saveError);
+      setSaveErrorMessage('Não foi possível salvar a partida.');
+    } finally {
+      setIsSavingGame(false);
+    }
+  };
+
+  /**
+   * Limpa feedbacks após alguns segundos
+   */
+  useEffect(() => {
+    if (!saveSuccessMessage && !saveErrorMessage) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setSaveSuccessMessage(null);
+      setSaveErrorMessage(null);
+    }, 4000);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [saveSuccessMessage, saveErrorMessage]);
 
   /**
    * Renderiza estado de carregamento
@@ -131,7 +233,7 @@ export default function LocalGamePage() {
           <h2 className="text-2xl font-bold text-red-600 mb-4">Erro</h2>
           <p className="text-gray-700 mb-6">{error}</p>
           <button
-            onClick={initializeGame}
+            onClick={() => router.replace('/game/local')}
             className="px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
           >
             Tentar novamente
@@ -183,6 +285,10 @@ export default function LocalGamePage() {
               hasMandatoryCaptures={gameState.hasMandatoryCaptures}
               onForfeit={handleForfeit}
               onNewGame={handleNewGame}
+              onSaveGame={handleSaveGame}
+              isSavingGame={loading || isSavingGame}
+              saveSuccessMessage={saveSuccessMessage}
+              saveErrorMessage={saveErrorMessage}
             />
           )}
         </div>
