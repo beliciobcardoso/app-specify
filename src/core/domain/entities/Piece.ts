@@ -46,9 +46,9 @@ export class Piece {
    */
   isOnPromotionRow(): boolean {
     if (this.color === PieceColor.LIGHT) {
-      return this.position.row === 7; // Linha 7 para peças claras
+      return this.position.row === 0; // Linha 0 (topo) para peças claras
     }
-    return this.position.row === 0; // Linha 0 para peças escuras
+    return this.position.row === 7; // Linha 7 (base) para peças escuras
   }
 
   /**

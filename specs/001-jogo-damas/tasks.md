@@ -80,7 +80,7 @@
 - [X] T031 [P] [US1] Implementar LeiDaMaioriaService em `src/core/domain/services/LeiDaMaioriaService.ts` (calcular todos os caminhos de captura possíveis, determinar caminho com maior número de capturas)
 - [X] T032 [P] [US1] Implementar PromotionService em `src/core/domain/services/PromotionService.ts` (detectar quando peça comum atinge 8ª fileira, promover a Dama)
 - [X] T033 [P] [US1] Implementar WinConditionChecker em `src/core/domain/services/WinConditionChecker.ts` (detectar vitória por captura total, empate por bloqueio mútuo com peças iguais, derrota por menor número de peças)
-- [ ] T034 [US1] Implementar GameEngine em `src/core/domain/services/GameEngine.ts` (orquestrar todos os serviços: validar movimento, aplicar captura obrigatória, promover Dama, verificar win condition) - depende de T029-T033
+- [X] T034 [US1] Implementar GameEngine em `src/core/domain/services/GameEngine.ts` (orquestrar todos os serviços: validar movimento, aplicar captura obrigatória, promover Dama, verificar win condition) - depende de T029-T033
 
 ### Implementação Application Layer (Use Cases)
 
