@@ -1,36 +1,119 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Jogo de Damas Completo
 
-## Getting Started
+Sistema completo de jogo de Damas (regras brasileiras) com três modos: local, online e contra Bot (IA).
 
-First, run the development server:
+## 🎯 Features
+
+- ✅ **Jogo Local**: Dois jogadores no mesmo dispositivo
+- ✅ **Jogo Online**: Partidas em tempo real via WebSocket com salas e espectadores
+- ✅ **Jogo vs Bot**: 3 níveis de dificuldade (Fácil, Médio, Difícil)
+- ✅ **Salvar/Carregar**: Persistência de partidas para usuários autenticados
+- ✅ **Regras Brasileiras**: Captura obrigatória, Lei da Maioria, capturas bidirecionais
+- ✅ **Modo Espectador**: Assista partidas online em tempo real
+
+## 🛠️ Tech Stack
+
+- **Framework**: Next.js 16+ (App Router)
+- **Linguagem**: TypeScript 5+ (strict mode)
+- **Database**: PostgreSQL + Prisma ORM
+- **Auth**: Better-Auth
+- **Real-time**: Socket.io
+- **Validation**: Zod
+- **Styling**: Tailwind CSS
+- **Testing**: Jest + React Testing Library
+
+## 🏗️ Arquitetura
+
+- **Clean Architecture**: Lógica de negócio desacoplada em `src/core/`
+- **Repository Pattern**: Abstrações de dados em `core/application/ports/`
+- **Domain-Driven Design**: Entidades e serviços de domínio em `core/domain/`
+
+## 📋 Pré-requisitos
+
+- Node.js 20+
+- Docker e Docker Compose (para PostgreSQL)
+- npm ou yarn
+
+## 🚀 Setup Rápido
 
 ```bash
+# 1. Clonar repositório
+git clone <repo-url>
+cd app-specify
+
+# 2. Instalar dependências
+npm install
+
+# 3. Configurar variáveis de ambiente
+cp .env.example .env
+# Edite .env com suas credenciais
+
+# 4. Subir PostgreSQL via Docker
+docker-compose up -d
+
+# 5. Executar migrations Prisma
+npx prisma migrate dev
+
+# 6. Iniciar servidor de desenvolvimento
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Acesse: http://localhost:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📚 Documentação Completa
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Consulte [`specs/001-jogo-damas/quickstart.md`](specs/001-jogo-damas/quickstart.md) para instruções detalhadas de setup e desenvolvimento.
 
-## Learn More
+## 🧪 Testes
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+# Executar todos os testes
+npm test
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Testes unitários (core/)
+npm run test:unit
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# Testes de integração
+npm run test:integration
 
-## Deploy on Vercel
+# Coverage
+npm run test:coverage
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 📖 Documentação do Projeto
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Especificação**: [`specs/001-jogo-damas/spec.md`](specs/001-jogo-damas/spec.md)
+- **Plano de Implementação**: [`specs/001-jogo-damas/plan.md`](specs/001-jogo-damas/plan.md)
+- **Modelo de Dados**: [`specs/001-jogo-damas/data-model.md`](specs/001-jogo-damas/data-model.md)
+- **Contratos de API**: [`specs/001-jogo-damas/contracts/`](specs/001-jogo-damas/contracts/)
+
+## 🎮 Como Jogar
+
+### Modo Local
+1. Acesse `/game/local`
+2. Clique em peças para movê-las
+3. Alterne turnos entre jogadores
+
+### Modo Online
+1. Jogador 1: Crie uma sala → compartilhe código
+2. Jogador 2: Entre com código
+3. Espectadores: Entre com mesmo código após 2 jogadores ativos
+
+### Modo Bot
+1. Acesse `/game/bot`
+2. Selecione dificuldade (Fácil/Médio/Difícil)
+3. Escolha sua cor (Claro/Escuro)
+
+## 🔐 Autenticação
+
+- Autenticação gerenciada via Better-Auth
+- Necessária para: salvar/carregar partidas, criar salas online
+- Modos local e bot funcionam sem login
+
+## 📄 Licença
+
+MIT
+
+## 👥 Contribuindo
+
+Consulte [`CONTRIBUTING.md`](CONTRIBUTING.md) para diretrizes de contribuição.
