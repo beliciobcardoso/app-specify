@@ -164,26 +164,26 @@
 
 ### Implementação Infrastructure Layer (Bot)
 
-- [ ] T063 [P] [US3] Implementar RandomBotService em `src/infrastructure/bot/RandomBotService.ts` (nível Fácil: selecionar jogada válida aleatória entre movimentos possíveis, respeitar captura obrigatória)
-- [ ] T064 [US3] Implementar MinimaxBotService em `src/infrastructure/bot/MinimaxBotService.ts` (níveis Médio/Difícil: algoritmo Minimax com alpha-beta pruning, função de avaliação baseada em número de peças, Damas, posição no tabuleiro, timeout de 3 segundos)
+- [X] T063 [P] [US3] Implementar RandomBotService em `src/infrastructure/bot/RandomBotService.ts` (nível Fácil: selecionar jogada válida aleatória entre movimentos possíveis, respeitar captura obrigatória)
+- [X] T064 [US3] Implementar MinimaxBotService em `src/infrastructure/bot/MinimaxBotService.ts` (níveis Médio/Difícil: algoritmo Minimax com alpha-beta pruning, função de avaliação baseada em número de peças, Damas, posição no tabuleiro, timeout de 3 segundos)
 
 ### Implementação Application Layer
 
-- [ ] T065 [P] [US3] Criar DTOs em `src/core/application/dtos/`: StartBotGameDTO.ts (com dificuldade selecionada)
-- [ ] T066 [US3] Implementar StartBotGameUseCase em `src/core/application/use-cases/bot/StartBotGameUseCase.ts` (criar partida modo BOT, inicializar tabuleiro, selecionar BotService conforme dificuldade)
-- [ ] T067 [US3] Implementar ExecuteBotMoveUseCase em `src/core/application/use-cases/bot/ExecuteBotMoveUseCase.ts` (chamar IBotService.calculateMove(), validar jogada do Bot via GameEngine, logar movimento, garantir resposta <3s)
+- [X] T065 [P] [US3] Criar DTOs em `src/core/application/dtos/`: StartBotGameDTO.ts (com dificuldade selecionada)
+- [X] T066 [US3] Implementar StartBotGameUseCase em `src/core/application/use-cases/bot/StartBotGameUseCase.ts` (criar partida modo BOT, inicializar tabuleiro, selecionar BotService conforme dificuldade)
+- [X] T067 [US3] Implementar ExecuteBotMoveUseCase em `src/core/application/use-cases/bot/ExecuteBotMoveUseCase.ts` (chamar IBotService.calculateMove(), validar jogada do Bot via GameEngine, logar movimento, garantir resposta <3s)
 
 ### Implementação Presentation Layer
 
-- [ ] T068 [US3] Implementar Server Action startBotGame em `src/app/_actions/game-actions.ts` (validar StartBotGameSchema com dificuldade, chamar StartBotGameUseCase, retornar GameStateDTO)
-- [ ] T069 [US3] Criar página de jogo vs Bot em `src/app/(auth)/game/bot/page.tsx` (seleção de dificuldade, seleção de cor do jogador, iniciar partida, executar turnos alternados usuário/Bot)
-- [ ] T070 [US3] Integrar ExecuteBotMoveUseCase com UI (após jogada do usuário, chamar Server Action para Bot jogar, atualizar tabuleiro)
+- [X] T068 [US3] Implementar Server Action startBotGame em `src/app/_actions/game-actions.ts` (validar StartBotGameSchema com dificuldade, chamar StartBotGameUseCase, retornar GameStateDTO)
+- [X] T069 [US3] Criar página de jogo vs Bot em `src/app/(auth)/game/bot/page.tsx` (seleção de dificuldade, seleção de cor do jogador, iniciar partida, executar turnos alternados usuário/Bot)
+- [X] T070 [US3] Integrar ExecuteBotMoveUseCase com UI (após jogada do usuário, chamar Server Action para Bot jogar, atualizar tabuleiro)
 
 ### Testes e Validação
 
-- [ ] T071 [P] [US3] Teste unitário para MinimaxBotService em `tests/unit/infrastructure/bot/MinimaxBotService.test.ts` (testar jogadas válidas, captura obrigatória respeitada, tempo de resposta <3s, estratégia avançada no nível Difícil)
-- [ ] T072 [P] [US3] Teste unitário para ExecuteBotMoveUseCase em `tests/unit/core/application/ExecuteBotMoveUseCase.test.ts` (testar seleção de BotService, validação de jogada, logging)
-- [ ] T073 [US3] Validar User Story 3 conforme Acceptance Scenarios (4 cenários: Bot executa jogada em <3s, Bot respeita captura obrigatória, Bot demonstra estratégia avançada no Difícil, vitória do Bot)
+- [X] T071 [P] [US3] Teste unitário para MinimaxBotService em `tests/unit/infrastructure/bot/MinimaxBotService.test.ts` (testar jogadas válidas, captura obrigatória respeitada, tempo de resposta <3s, estratégia avançada no nível Difícil)
+- [X] T072 [P] [US3] Teste unitário para ExecuteBotMoveUseCase em `tests/unit/core/application/ExecuteBotMoveUseCase.test.ts` (testar seleção de BotService, validação de jogada, logging)
+- [X] T073 [US3] Validar User Story 3 conforme Acceptance Scenarios (4 cenários: Bot executa jogada em <3s, Bot respeita captura obrigatória, Bot demonstra estratégia avançada no Difícil, vitória do Bot)
 
 **Estimativa Total Fase 5 (US3)**: ~16 horas
 
