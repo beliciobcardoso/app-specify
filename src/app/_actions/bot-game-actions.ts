@@ -105,6 +105,12 @@ export async function executeBotGameMove(input: z.infer<typeof executeBotGameMov
       return { success: true, game: playerMove };
     }
     
+    // 2.1. Verificar se o jogador pode continuar capturando (capturas múltiplas)
+    if (playerMove.lastMove?.canContinueCapturing) {
+      await prisma.$disconnect();
+      return { success: true, game: playerMove };
+    }
+    
     // 3. Carregar o jogo atualizado
     const game = await gameRepository.findById(validated.gameId);
     if (!game) {
@@ -121,7 +127,7 @@ export async function executeBotGameMove(input: z.infer<typeof executeBotGameMov
       : new MinimaxBotService();
     
     // 5. Executar movimento do bot
-    const executeBotMoveUseCase = new ExecuteBotMoveUseCase();
+    const executeBotMoveUseCase = new ExecuteBotMoveUseCase(gameRepository);
     
     const botMove = await executeBotMoveUseCase.execute(game, {
       gameId: validated.gameId,

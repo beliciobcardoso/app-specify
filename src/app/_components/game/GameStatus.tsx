@@ -57,6 +57,11 @@ interface GameStatusProps {
    * Indica se há capturas obrigatórias
    */
   hasMandatoryCaptures?: boolean;
+
+  /**
+   * Cor do jogador humano (para jogo contra bot)
+   */
+  playerColor?: PieceColor;
 }
 
 /**
@@ -84,6 +89,7 @@ export function GameStatus({
   hasMandatoryCaptures = false,
   saveSuccessMessage = null,
   saveErrorMessage = null,
+  playerColor,
 }: GameStatusProps) {
   const isFinished = status === GameStatusEnum.FINISHED;
   const isLightTurn = currentTurn === PieceColor.LIGHT;
@@ -156,9 +162,29 @@ export function GameStatus({
     );
   };
 
+  /**
+   * Renderiza informação do jogador (para jogo contra bot)
+   */
+  const renderPlayerInfo = () => {
+    if (!playerColor) return null;
+
+    const isPlayerLight = playerColor === PieceColor.LIGHT;
+
+    return (
+      <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-3 mb-4">
+        <div className="text-sm text-blue-900 flex justify-around gap-4">
+          <div><span className="font-semibold">Você:</span> {isPlayerLight ? 'Peças Claras (Brancas) ⚪' : 'Peças Escuras (Pretas) ⚫'}</div>
+          <div><span className="font-semibold">Bot:</span> {isPlayerLight ? 'Peças Escuras (Pretas) ⚫' : 'Peças Claras (Brancas) ⚪'}</div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-lg p-6 min-w-[280px]">
       <h2 className="text-2xl font-bold mb-4 text-gray-800">Status do Jogo</h2>
+
+      {renderPlayerInfo()}
 
       {isFinished ? renderResult() : renderTurnIndicator()}
 

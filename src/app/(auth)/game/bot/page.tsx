@@ -10,6 +10,7 @@ import { Spinner } from '@/app/_components/shared/Spinner';
 import { startBotGame, executeBotGameMove } from '@/app/_actions/bot-game-actions';
 import { GameStateDTO } from '@/core/application/dtos/GameStateDTO';
 import { Position } from '@/core/domain/value-objects/Position';
+import { PieceColor } from '@/core/domain/value-objects/PieceColor';
 
 export default function BotGamePage() {
   const router = useRouter();
@@ -51,7 +52,14 @@ export default function BotGamePage() {
       
       if (result.success && result.game) {
         setGameState(result.game);
-        setSelectedPosition(null);
+        
+        // Se a peça pode continuar capturando, mantém selecionada
+        if (result.game.lastMove?.canContinueCapturing) {
+          setSelectedPosition(new Position(result.game.lastMove.to.row, result.game.lastMove.to.col));
+        } else {
+          // Caso contrário, limpa a seleção (turno passa pro bot)
+          setSelectedPosition(null);
+        }
       } else {
         setError(result.error || 'Failed to execute move');
       }
@@ -82,27 +90,12 @@ export default function BotGamePage() {
         {gameState && (
           <>
             <div className="mb-6">
-              <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-600">Você está jogando com:</p>
-                    <p className="text-lg font-bold text-blue-700">
-                      Peças Claras (Brancas) ⚪
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm text-gray-600">Adversário:</p>
-                    <p className="text-lg font-bold text-gray-700">
-                      Bot - Peças Escuras (Pretas) ⚫
-                    </p>
-                  </div>
-                </div>
-              </div>
-              
               <GameStatus
                 currentTurn={gameState.currentTurn}
                 status={gameState.status}
                 result={gameState.result}
+                hasMandatoryCaptures={gameState.hasMandatoryCaptures}
+                playerColor={PieceColor.LIGHT}
               />
             </div>
 

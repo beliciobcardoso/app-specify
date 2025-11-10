@@ -3,15 +3,29 @@ import { Game } from '@/core/domain/entities/Game';
 import { BotDifficulty } from '@/core/domain/value-objects/BotDifficulty';
 import { RandomBotService } from '@/infrastructure/bot/RandomBotService';
 import { MinimaxBotService } from '@/infrastructure/bot/MinimaxBotService';
+import type { IGameRepository } from '@/core/application/ports/IGameRepository';
 
 describe('ExecuteBotMoveUseCase', () => {
   let useCase: ExecuteBotMoveUseCase;
   let game: Game;
   let randomBot: RandomBotService;
   let minimaxBot: MinimaxBotService;
+  let mockRepository: jest.Mocked<IGameRepository>;
 
   beforeEach(() => {
-    useCase = new ExecuteBotMoveUseCase();
+    mockRepository = {
+      save: jest.fn(),
+      findById: jest.fn(),
+      findByPlayerId: jest.fn(),
+      findByUserId: jest.fn(),
+      findByMode: jest.fn(),
+      findByStatus: jest.fn(),
+      findActiveGamesByUserId: jest.fn(),
+      findSavedGamesByUserId: jest.fn(),
+      delete: jest.fn(),
+    } as unknown as jest.Mocked<IGameRepository>;
+    
+    useCase = new ExecuteBotMoveUseCase(mockRepository);
     randomBot = new RandomBotService();
     minimaxBot = new MinimaxBotService();
     

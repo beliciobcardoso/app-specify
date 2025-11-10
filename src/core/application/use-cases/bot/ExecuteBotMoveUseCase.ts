@@ -1,8 +1,11 @@
 import type { GameStateDTO } from '@/core/application/dtos/GameStateDTO';
 import type { IBotService } from '@/core/application/ports/IBotService';
+import type { IGameRepository } from '@/core/application/ports/IGameRepository';
 import { Game } from '@/core/domain/entities/Game';
 import { BotDifficulty } from '@/core/domain/value-objects/BotDifficulty';
 import { Position } from '@/core/domain/value-objects/Position';
+import { GameEngine } from '@/core/domain/services/GameEngine';
+import { PieceColor } from '@/core/domain/value-objects/PieceColor';
 
 /**
  * DTO para executar movimento do Bot
@@ -38,6 +41,14 @@ export interface ExecuteBotMoveDTO {
  * FR-016: Feedback visual claro de movimentos
  */
 export class ExecuteBotMoveUseCase {
+  private readonly gameEngine: GameEngine;
+
+  constructor(
+    private readonly gameRepository: IGameRepository
+  ) {
+    this.gameEngine = new GameEngine();
+  }
+
   /**
    * Executa o use case
    * 
@@ -58,26 +69,30 @@ export class ExecuteBotMoveUseCase {
         timeout,
       ]);
 
-      // TODO: Validar e executar movimento via GameEngine
-      // const moveResult = this.gameEngine.executeMove(
-      //   game.board,
-      //   botMove.from,
-      //   botMove.to,
-      //   game.currentTurn
-      // );
+      // Validar e executar movimento via GameEngine
+      const moveResult = this.gameEngine.executeMove(
+        game.board,
+        botMove.from,
+        botMove.to,
+        game.currentTurn
+      );
 
-      // TODO: Atualizar game
-      // game.board = moveResult.board;
-      // game.currentTurn = toggleTurn(game.currentTurn);
+      // Atualizar game
+      game.board = moveResult.board;
+      game.currentTurn = game.currentTurn === PieceColor.LIGHT ? PieceColor.DARK : PieceColor.LIGHT;
 
-      // TODO: Persistir jogo
-      // await this.gameRepository.save(game);
-
-      // TODO: Log movimento
-      // this.logger.info('Bot move executed', { gameId: game.id, from: botMove.from, to: botMove.to });
+      // Persistir jogo
+      await this.gameRepository.save(game);
 
       // Converter para DTO
-      return this.toGameStateDTO(game, botMove.from, botMove.to);
+      return this.toGameStateDTO(
+        game, 
+        botMove.from, 
+        botMove.to, 
+        moveResult.capturedPositions || [], 
+        moveResult.wasPromoted || false,
+        moveResult.canContinueCapturing || false
+      );
     } catch (error) {
       if (error instanceof Error && error.message.includes('timeout')) {
         throw new Error('Bot took too long to respond');
@@ -89,7 +104,14 @@ export class ExecuteBotMoveUseCase {
   /**
    * Converte Game entity para GameStateDTO
    */
-  private toGameStateDTO(game: Game, from?: Position, to?: Position): GameStateDTO {
+  private toGameStateDTO(
+    game: Game, 
+    from?: Position, 
+    to?: Position,
+    capturedPositions: Position[] = [],
+    wasPromoted: boolean = false,
+    canContinueCapturing: boolean = false
+  ): GameStateDTO {
     const pieces = game.board.getAllPieces().map((piece) => ({
       id: piece.id,
       color: piece.color,
@@ -101,8 +123,16 @@ export class ExecuteBotMoveUseCase {
       isActive: piece.isActive,
     }));
 
-    // TODO: Calcular movimentos válidos usando GameEngine
-    const validMoves = new Map();
+    // Calcular movimentos válidos usando GameEngine
+    const validMovesMap = this.gameEngine.getValidMoves(game.board, game.currentTurn);
+    const hasMandatoryCaptures = this.gameEngine.hasMandatoryCaptures(game.board, game.currentTurn);
+
+    // Converter Map<Position, Position[]> para Map<string, Position[]>
+    const validMovesDTO = new Map<string, Position[]>();
+    validMovesMap.forEach((moves, position) => {
+      const key = `${position.row},${position.col}`;
+      validMovesDTO.set(key, moves);
+    });
 
     return {
       gameId: game.id,
@@ -110,14 +140,14 @@ export class ExecuteBotMoveUseCase {
       result: undefined,
       currentTurn: game.currentTurn,
       pieces,
-      validMoves,
-      hasMandatoryCaptures: false, // TODO: verificar via GameEngine
+      validMoves: validMovesDTO,
+      hasMandatoryCaptures,
       lastMove: from && to ? {
         from: { row: from.row, col: from.col },
         to: { row: to.row, col: to.col },
-        capturedPositions: [], // TODO: pegar do moveResult
-        wasPromoted: false, // TODO: pegar do moveResult
-        canContinueCapturing: false, // TODO: pegar do moveResult
+        capturedPositions: capturedPositions.map(pos => ({ row: pos.row, col: pos.col })),
+        wasPromoted,
+        canContinueCapturing,
       } : undefined,
       updatedAt: game.updatedAt,
     };
